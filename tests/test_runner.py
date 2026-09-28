@@ -162,3 +162,18 @@ def test_per_employer_robots_override():
             assert c.get("https://ex.com/feed").text == "ok"
         with pytest.raises(RobotsDisallowed):
             c.get("https://ex.com/feed")
+
+
+@pytest.mark.parametrize("status,allowed", [(404, True), (403, True), (401, True), (503, False)])
+def test_robots_status_codes_follow_rfc9309(status, allowed):
+    def handler(request):
+        if request.url.path == "/robots.txt":
+            return httpx.Response(status)
+        return httpx.Response(200, text="ok")
+
+    with _client(handler) as c:
+        if allowed:
+            assert c.get("https://ex.com/jobs").text == "ok"
+        else:
+            with pytest.raises(RobotsDisallowed):
+                c.get("https://ex.com/jobs")

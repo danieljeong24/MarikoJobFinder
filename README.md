@@ -65,10 +65,10 @@ uv sync --extra browser && uv run playwright install chromium
 ```
 
 If Playwright isn't installed, those employers show up under "sites that
-failed" and every other employer still runs. **In the shipped config, no
-employer needs Playwright.** Every entry has a JSON API, an RSS feed or
-server-rendered HTML. The one to watch is `lochsa`: its site looks like Wix.
-If `job-watch probe lochsa` finds 0 postings, set `render_js: true` on it.
+failed" and every other employer still runs. **In the shipped config only
+`gcw` needs Playwright**, because Betterteam returns 403 to plain HTTP
+clients. Everything else uses a JSON API, an RSS feed or server-rendered
+HTML.
 
 ### Environment variables (`.env`)
 

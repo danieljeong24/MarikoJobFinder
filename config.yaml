@@ -275,6 +275,8 @@ employers:
     options:
       url: https://gcwengineering.betterteam.com/
       link_regex: "^https://gcwengineering\\.betterteam\\.com/[a-z0-9-]+/?$"
+      # Betterteam returns 403 to plain HTTP clients; render in a real browser.
+      render_js: true
 
   - id: lochsa
     name: Lochsa Engineering
@@ -359,6 +361,8 @@ employers:
     name: USAJOBS (0810 Civil Engineering)
     category: federal
     type: usajobs
+    # Turn on once USAJOBS_API_KEY / USAJOBS_EMAIL are in .env.
+    enabled: false
     careers_url: https://www.usajobs.gov/search/results/?j=0810&l=Las%20Vegas%2C%20Nevada&r=50
     verified: "official API, https://developer.usajobs.gov/"
     options:

@@ -130,11 +130,15 @@ class PoliteClient:
         except httpx.HTTPError as exc:
             log.info("could not fetch %s (%s); assuming allowed", robots_url, exc)
             return None
-        if resp.status_code in (401, 403):
-            # Same convention as urllib.robotparser: auth-walled robots = disallow all.
-            parser.disallow_all = True
-        elif resp.status_code >= 400:
+        # RFC 9309 (the robots.txt standard): 4xx means "no rules", so all
+        # paths are allowed. That includes 403s from bot-protection layers
+        # that block robots.txt itself. 5xx means the site's rules are
+        # unknown, so treat every path as disallowed.
+        if 400 <= resp.status_code < 500:
             parser.allow_all = True
+        elif resp.status_code >= 500:
+            log.info("%s returned %s; treating site as disallowed", robots_url, resp.status_code)
+            parser.disallow_all = True
         else:
             parser.parse(resp.text.splitlines())
         return parser
