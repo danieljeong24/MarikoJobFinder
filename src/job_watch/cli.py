@@ -187,6 +187,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows pipes/redirects default to a legacy code page that can't encode
+    # the digest's bullets and check marks; force UTF-8 everywhere.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     args = build_parser().parse_args(argv)
     logging.basicConfig(
         level=logging.INFO if args.verbose_log else logging.WARNING,
