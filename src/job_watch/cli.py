@@ -20,7 +20,7 @@ from .fetchers.base import ConfigError
 from .fetchers.browser import playwright_available
 from .filters import evaluate
 from .http import PoliteClient
-from .runner import mark_delivered, run, select_employers
+from .runner import fetch_one, mark_delivered, resolve_unverified, run, select_employers
 from .store import Store
 
 
@@ -87,7 +87,7 @@ def cmd_check_config(args) -> int:
             ok = False
             note = f"  !! {exc}"
         if needs_browser(e):
-            note += "  (needs Playwright)" + ("" if have_pw else " — NOT INSTALLED")
+            note += "  (needs Playwright)" + ("" if have_pw else " - NOT INSTALLED")
         print(f"  [{status}] {e.id:<24} {e.type:<16} {e.category:<9}{note}")
     if any(e.type == "usajobs" and e.enabled for e in cfg.employers):
         if not (os.environ.get("USAJOBS_API_KEY") and os.environ.get("USAJOBS_EMAIL")):
@@ -106,7 +106,8 @@ def cmd_probe(args) -> int:
         for e in employers:
             print(f"\n=== {e.name} [{e.id}] ({e.type}) ===")
             try:
-                postings = get_fetcher(e, http).fetch()
+                postings = fetch_one(e, http)
+                resolve_unverified(e, http, postings, cfg)
             except Exception as exc:
                 print(f"  FAILED: {type(exc).__name__}: {exc}")
                 rc = 1
@@ -116,13 +117,39 @@ def cmd_probe(args) -> int:
                 r = evaluate(p, cfg.filters, e.filters)
                 matched += r.matched
                 if r.matched or args.verbose:
-                    mark = "✓" if r.matched else "·"
+                    mark = "+" if r.matched else "-"
                     print(f"  {mark} {p.title} | {p.location}")
                     if args.verbose:
                         print(f"      {r.summary}")
                         print(f"      {p.url}")
             print(f"  -> {len(postings)} fetched, {matched} matched")
     return rc
+
+
+def cmd_links(args) -> int:
+    """Print every link on a page, to help write link_regex / selectors."""
+    from urllib.parse import urljoin
+
+    from bs4 import BeautifulSoup
+
+    from .fetchers import browser
+
+    cfg = _load(args)
+    with PoliteClient(cfg.settings) as http:
+        if args.render_js:
+            html = browser.render(http, args.url)
+        else:
+            html = http.get(args.url).text
+    soup = BeautifulSoup(html, "html.parser")
+    links = soup.find_all("a", href=True)
+    for a in links:
+        text = " ".join(a.get_text(" ").split())[:70]
+        print(f"{text:<70}  {urljoin(args.url, a['href'])}")
+    print(f"\n{len(links)} link(s); page is {len(html)} characters")
+    if not links:
+        print("No links: the page probably builds its content with JavaScript. "
+              "Try again with --render-js (needs Playwright).")
+    return 0
 
 
 def cmd_list(args) -> int:
@@ -176,6 +203,12 @@ def build_parser() -> argparse.ArgumentParser:
     pr.add_argument("--verbose", action="store_true", help="show non-matching postings and reasons")
     pr.add_argument("--delay", type=float, help="override request_delay_seconds")
     pr.set_defaults(func=cmd_probe)
+
+    lk = sub.add_parser("links", help="print every link on a page (for writing html configs)")
+    common(lk)
+    lk.add_argument("url")
+    lk.add_argument("--render-js", action="store_true", help="render with Playwright first")
+    lk.set_defaults(func=cmd_links)
 
     ls = sub.add_parser("list", help="list postings stored in the database")
     common(ls)

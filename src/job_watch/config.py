@@ -96,6 +96,9 @@ class Employer(BaseModel):
     verified: str | None = None
     notes: str | None = None
     options: dict[str, Any] = Field(default_factory=dict)
+    # None = use settings.respect_robots_txt. Set false only for a site whose
+    # robots.txt blocks an endpoint you've decided is fine to use.
+    respect_robots_txt: bool | None = None
     filters: EmployerFilterOverrides = Field(default_factory=EmployerFilterOverrides)
 
     @field_validator("id")

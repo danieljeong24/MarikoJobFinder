@@ -7,30 +7,30 @@ Las Vegas metro.
 
 ```
 ========================================================================
-job-watch digest — 2026-10-05
+job-watch digest - 2026-10-05
 ========================================================================
 
 NEW POSTINGS (2)
 
 Public agencies
 ---------------
-  • Assistant/Associate Engineer
-      Clark County — Las Vegas, NV
+  * Assistant/Associate Engineer
+      Clark County - Las Vegas, NV
       https://www.governmentjobs.com/careers/clarkcounty/jobs/4004033/...
 
 National firms
 --------------
-  • Transportation Engineer I
-      HNTB — Las Vegas, NV
+  * Transportation Engineer I
+      HNTB - Las Vegas, NV
       https://hntb.wd5.myworkdayjobs.com/HNTB_Careers/job/...
 
 CLOSED SINCE LAST RUN (1)
-  • Civil EIT — Kimley-Horn (closed 2026-10-05)
+  * Civil EIT - Kimley-Horn (closed 2026-10-05)
 
 Checked 18 site(s), 1432 posting(s) total.
 
 SITES THAT FAILED (1)
-  ✗ USAJOBS (0810 Civil Engineering) [usajobs-0810]: ConfigError: USAJOBS_API_KEY ...
+  x USAJOBS (0810 Civil Engineering) [usajobs-0810]: ConfigError: USAJOBS_API_KEY ...
 ```
 
 ## Setup
@@ -65,10 +65,10 @@ uv sync --extra browser && uv run playwright install chromium
 ```
 
 If Playwright isn't installed, those employers show up under "sites that
-failed" and every other employer still runs. **In the shipped config, no
-employer needs Playwright.** Every entry has a JSON API, an RSS feed or
-server-rendered HTML. The one to watch is `lochsa`: its site looks like Wix.
-If `job-watch probe lochsa` finds 0 postings, set `render_js: true` on it.
+failed" and every other employer still runs. **In the shipped config only
+`gcw` needs Playwright**, because Betterteam returns 403 to plain HTTP
+clients. Everything else uses a JSON API, an RSS feed or server-rendered
+HTML.
 
 ### Environment variables (`.env`)
 
@@ -95,6 +95,7 @@ job-watch probe --all              # smoke-test every employer (no DB writes)
 job-watch list                     # open matching postings in the DB
 job-watch list --status closed
 job-watch check-config             # validate config.yaml
+job-watch links https://example.com/careers   # list every link on a page (for html entries)
 ```
 
 Exit code: `run` returns 0 even if some sites failed; add `--fail-on-error`
@@ -138,6 +139,12 @@ the same postings show up again next time.
    federal, with "sites that failed" at the end. `--json` and `--email` are
    also available.
 
+**Robots.txt.** A site whose robots.txt forbids an endpoint fails with
+`RobotsDisallowed`. That means the tool is doing what it should. If you've
+decided a particular endpoint is fine to use anyway (for example, an
+official public feed), add `respect_robots_txt: false` to that one employer.
+The global setting stays on for everything else.
+
 **Politeness.** Every request goes through `http.py`:
 - a real User-Agent (set it in `settings.user_agent`)
 - a delay between requests to the same host (`request_delay_seconds`, default 2s)
@@ -156,7 +163,7 @@ starting list. After that you only see changes.
 | hdr | HDR | Oracle Taleo (`hdr.taleo.net`, section `ex`, portal 101430233) | `taleo` |
 | hntb, hntb-university | HNTB | Workday (`hntb.wd5`, sites `HNTB_Careers` / `HNTB_University_Careers`) | `workday` |
 | wsp | WSP | Oracle Recruiting Cloud (`emit.fa.ca3.oraclecloud.com`, site `CX_2001`) | `oracle_hcm` |
-| jacobs | Jacobs | Avature at careers.jacobs.com. The tool reads the server-rendered Las Vegas page on jacobs.jobs instead | `html` |
+| jacobs | Jacobs | Avature (`careers.jacobs.com`), read as a web page with a Las Vegas keyword search | `html` |
 | stantec | Stantec | Oracle Taleo (`stantec.taleo.net`, portal id auto-discovered) | `taleo` |
 | aecom | AECOM | SmartRecruiters (`AECOM2`) | `smartrecruiters` |
 | atkinsrealis | AtkinsRéalis | Workday (`slihrms.wd3`, site `Careers`) | `workday` |
@@ -346,6 +353,20 @@ launchctl start com.jobwatch.weekly     # run once now to test
 ```
 
 launchd runs a missed job when the Mac wakes up. cron doesn't.
+
+**Windows (Task Scheduler).** `scripts\run-weekly.bat` runs
+`job-watch run --email` from the repo folder and appends the output to
+`job-watch.log`. To register it for every Monday at 7:00 am, run this in
+PowerShell from the repo folder:
+
+```powershell
+schtasks /Create /SC WEEKLY /D MON /ST 07:00 /TN "job-watch" /TR "`"$PWD\scripts\run-weekly.bat`""
+schtasks /Run /TN "job-watch"      # run once now to test, then check job-watch.log
+```
+
+In Task Scheduler (Properties → Settings), tick "Run task as soon as possible
+after a scheduled start is missed" so a missed Monday runs when the PC is
+next on.
 
 ## Development
 

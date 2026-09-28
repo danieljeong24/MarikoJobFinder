@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import random
 import time
+from contextlib import contextmanager
 from email.utils import parsedate_to_datetime
 from urllib.parse import urlsplit
 from urllib.robotparser import RobotFileParser
@@ -37,6 +38,18 @@ class PoliteClient:
         self._last_request: dict[str, float] = {}
         self._robots: dict[str, RobotFileParser | None] = {}
         self._sleep = time.sleep
+        self.respect_robots = settings.respect_robots_txt
+
+    @contextmanager
+    def robots_policy(self, respect: bool | None):
+        """Temporarily override robots.txt handling (per-employer setting)."""
+        previous = self.respect_robots
+        if respect is not None:
+            self.respect_robots = respect
+        try:
+            yield
+        finally:
+            self.respect_robots = previous
 
     def close(self) -> None:
         self._client.close()
@@ -98,7 +111,7 @@ class PoliteClient:
         self._last_request[host] = time.monotonic()
 
     def _check_robots(self, url: str) -> None:
-        if not self.settings.respect_robots_txt:
+        if not self.respect_robots:
             return
         parts = urlsplit(url)
         origin = f"{parts.scheme}://{parts.netloc}"
@@ -117,11 +130,15 @@ class PoliteClient:
         except httpx.HTTPError as exc:
             log.info("could not fetch %s (%s); assuming allowed", robots_url, exc)
             return None
-        if resp.status_code in (401, 403):
-            # Same convention as urllib.robotparser: auth-walled robots = disallow all.
-            parser.disallow_all = True
-        elif resp.status_code >= 400:
+        # RFC 9309 (the robots.txt standard): 4xx means "no rules", so all
+        # paths are allowed. That includes 403s from bot-protection layers
+        # that block robots.txt itself. 5xx means the site's rules are
+        # unknown, so treat every path as disallowed.
+        if 400 <= resp.status_code < 500:
             parser.allow_all = True
+        elif resp.status_code >= 500:
+            log.info("%s returned %s; treating site as disallowed", robots_url, resp.status_code)
+            parser.disallow_all = True
         else:
             parser.parse(resp.text.splitlines())
         return parser

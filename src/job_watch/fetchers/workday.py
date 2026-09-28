@@ -9,6 +9,10 @@ options:
   site:        e.g. HNTB_Careers
   search_text: optional server-side keyword search (e.g. "Las Vegas")
   applied_facets: optional dict copied from the browser's request payload
+
+Postings listed as "N Locations" are resolved through the job-detail
+endpoint (GET .../wday/cxs/{tenant}/{site}{externalPath}), but only for
+postings that otherwise pass the filters.
 """
 
 from __future__ import annotations
@@ -64,6 +68,24 @@ class WorkdayFetcher(Fetcher):
                     url=f"https://{o['host']}/{o['site']}{path}" if path else "",
                     external_id=clean(bullets[0]) if bullets else (path or None),
                     posted_date=clean(job.get("postedOn")) or None,
+                    extra={"path": path},
                 )
             )
         return out
+
+    def resolve_location(self, posting: Posting) -> str | None:
+        path = posting.extra.get("path")
+        if not path:
+            return None
+        o = self.options
+        url = f"https://{o['host']}/wday/cxs/{o['tenant']}/{o['site']}{path}"
+        data = self.http.get_json(url, headers={"Accept": "application/json"})
+        return self.parse_detail_location(data)
+
+    @staticmethod
+    def parse_detail_location(data: dict) -> str | None:
+        info = data.get("jobPostingInfo") or {}
+        locs = [clean(info.get("location"))]
+        locs += [clean(x) for x in info.get("additionalLocations") or []]
+        locs = [x for x in locs if x]
+        return " / ".join(locs) or None

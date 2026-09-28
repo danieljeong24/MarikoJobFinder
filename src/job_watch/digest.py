@@ -17,7 +17,7 @@ CATEGORY_ORDER = [
 
 def _line(p: StoredPosting) -> list[str]:
     flag = "  [location unverified]" if p.location_unverified else ""
-    lines = [f"  • {p.title}", f"      {p.firm} — {p.location or 'location n/a'}{flag}"]
+    lines = [f"  * {p.title}", f"      {p.firm} - {p.location or 'location n/a'}{flag}"]
     if p.url:
         lines.append(f"      {p.url}")
     return lines
@@ -27,7 +27,7 @@ def render_text(report: RunReport) -> str:
     out: list[str] = []
     bar = "=" * 72
     out.append(bar)
-    out.append(f"job-watch digest — {report.run_date}")
+    out.append(f"job-watch digest - {report.run_date}")
     out.append(bar)
 
     if report.new:
@@ -51,7 +51,7 @@ def render_text(report: RunReport) -> str:
     if report.closed:
         out.append(f"\nCLOSED SINCE LAST RUN ({len(report.closed)})")
         for p in report.closed:
-            out.append(f"  • {p.title} — {p.firm} (closed {p.closed_date})")
+            out.append(f"  * {p.title} - {p.firm} (closed {p.closed_date})")
 
     if report.stats:
         checked = sum(s.fetched for s in report.stats)
@@ -60,7 +60,7 @@ def render_text(report: RunReport) -> str:
     if report.errors:
         out.append(f"\nSITES THAT FAILED ({len(report.errors)})")
         for e in report.errors:
-            out.append(f"  ✗ {e.name} [{e.employer_id}]: {e.error}")
+            out.append(f"  x {e.name} [{e.employer_id}]: {e.error}")
 
     out.append("")
     return "\n".join(out)
