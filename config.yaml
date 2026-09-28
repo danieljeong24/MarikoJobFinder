@@ -9,8 +9,9 @@
 settings:
   db_path: ~/.local/share/job-watch/jobs.db
   request_delay_seconds: 2.0
-  # Put a real contact address here; it's polite and some sites require it.
-  user_agent: "job-watch/0.1 (personal weekly job search; contact: danieljeong35@gmail.com)"
+  # None of the configured sites require a contact address. USAJOBS gets its
+  # email from USAJOBS_EMAIL in .env, not from here.
+  user_agent: "job-watch/0.1 (personal weekly job search)"
   max_retries: 4
   backoff_base_seconds: 2.0
   respect_robots_txt: true
