@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 
 from .config import Config, Employer
-from .fetchers import get_fetcher
+from .fetchers import Fetcher, get_fetcher
 from .filters import evaluate
 from .http import PoliteClient
 from .models import Posting
@@ -41,6 +41,7 @@ class RunReport:
     errors: list[SiteError] = field(default_factory=list)
     stats: list[SiteStat] = field(default_factory=list)
     categories: dict[str, str] = field(default_factory=dict)  # employer_id -> category
+    duplicate_keys: list[str] = field(default_factory=list)  # hidden repeats, still marked reported
 
     def to_dict(self) -> dict:
         return {
@@ -63,7 +64,40 @@ def select_employers(config: Config, only: list[str] | None) -> list[Employer]:
 
 
 def fetch_one(employer: Employer, http: PoliteClient) -> list[Posting]:
-    return get_fetcher(employer, http).fetch()
+    with http.robots_policy(employer.respect_robots_txt):
+        return get_fetcher(employer, http).fetch()
+
+
+def resolve_unverified(
+    employer: Employer, http: PoliteClient, postings: list[Posting], config: Config
+) -> None:
+    """For matching postings with a vague location ("3 Locations"), ask the
+    fetcher for the real one. Failures leave the posting as-is (flagged)."""
+    if http is None:
+        return
+    fetcher = get_fetcher(employer, http)
+    if type(fetcher).resolve_location is Fetcher.resolve_location:
+        return  # this fetcher can't look locations up
+    limit = int(employer.options.get("max_location_lookups", 60))
+    with http.robots_policy(employer.respect_robots_txt):
+        _resolve(fetcher, employer, postings, config, limit)
+
+
+def _resolve(fetcher, employer, postings, config, limit) -> None:
+    for p in postings:
+        if limit <= 0:
+            break
+        r = evaluate(p, config.filters, employer.filters)
+        if not (r.matched and r.location_unverified):
+            continue
+        limit -= 1
+        try:
+            loc = fetcher.resolve_location(p)
+        except Exception as exc:
+            log.info("location lookup failed for %s: %s", p.url, exc)
+            continue
+        if loc:
+            p.location = loc
 
 
 def run(
@@ -83,6 +117,7 @@ def run(
         log.info("fetching %s (%s)", employer.name, employer.type)
         try:
             postings = fetch_one(employer, http)
+            resolve_unverified(employer, http, postings, config)
         except Exception as exc:  # one site must never kill the run
             msg = f"{type(exc).__name__}: {exc}"
             log.debug("%s failed:\n%s", employer.id, traceback.format_exc())
@@ -106,7 +141,7 @@ def run(
         store.record_employer(run_id, employer.id, "ok", len(postings), matched, None)
         report.stats.append(SiteStat(employer.id, employer.name, employer.category, len(postings), matched))
 
-    report.new = store.new_matches()
+    report.new, report.duplicate_keys = _dedupe(store.new_matches())
     report.closed = store.newly_closed_matches()
     store.finish_run(
         run_id,
@@ -116,10 +151,24 @@ def run(
     return report
 
 
+def _dedupe(postings: list[StoredPosting]) -> tuple[list[StoredPosting], list[str]]:
+    """Same firm + title + location listed on two career sites -> show once."""
+    seen: set[tuple[str, str, str]] = set()
+    keep, dupes = [], []
+    for p in postings:
+        k = (p.firm.lower(), p.title.lower(), p.location.lower())
+        if k in seen:
+            dupes.append(p.posting_key)
+        else:
+            seen.add(k)
+            keep.append(p)
+    return keep, dupes
+
+
 def mark_delivered(store: Store, report: RunReport) -> None:
     """Record that these postings were shown, so the next run won't repeat them."""
     store.mark_reported(
-        [p.posting_key for p in report.new],
+        [p.posting_key for p in report.new] + report.duplicate_keys,
         [p.posting_key for p in report.closed],
         date.fromisoformat(report.run_date),
     )

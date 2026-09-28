@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import random
 import time
+from contextlib import contextmanager
 from email.utils import parsedate_to_datetime
 from urllib.parse import urlsplit
 from urllib.robotparser import RobotFileParser
@@ -37,6 +38,18 @@ class PoliteClient:
         self._last_request: dict[str, float] = {}
         self._robots: dict[str, RobotFileParser | None] = {}
         self._sleep = time.sleep
+        self.respect_robots = settings.respect_robots_txt
+
+    @contextmanager
+    def robots_policy(self, respect: bool | None):
+        """Temporarily override robots.txt handling (per-employer setting)."""
+        previous = self.respect_robots
+        if respect is not None:
+            self.respect_robots = respect
+        try:
+            yield
+        finally:
+            self.respect_robots = previous
 
     def close(self) -> None:
         self._client.close()
@@ -98,7 +111,7 @@ class PoliteClient:
         self._last_request[host] = time.monotonic()
 
     def _check_robots(self, url: str) -> None:
-        if not self.settings.respect_robots_txt:
+        if not self.respect_robots:
             return
         parts = urlsplit(url)
         origin = f"{parts.scheme}://{parts.netloc}"

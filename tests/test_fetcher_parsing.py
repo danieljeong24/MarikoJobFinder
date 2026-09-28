@@ -137,3 +137,8 @@ def test_html_selector_mode():
         ("Traffic Engineer I", "Henderson, NV", "https://ex.com/j/1"),
         ("Accountant", "Las Vegas, NV", "https://ex.com/j/2"),
     ]
+
+
+def test_workday_detail_location(load_fixture):
+    loc = WorkdayFetcher.parse_detail_location(load_fixture("workday_detail.json"))
+    assert loc == "Kansas City, MO / Las Vegas, NV / Denver, CO"

@@ -59,6 +59,8 @@ filters:
       - V
       - intern
       - internship
+      - interns only        # "For Current/Former HNTB Interns Only"
+      - returning           # "Returning New Grad" = former interns
       - co-op
       - technician
       - inspector
@@ -172,7 +174,7 @@ employers:
       search_text: Las Vegas
 
   - id: hntb-university
-    name: HNTB (University)
+    name: HNTB  # same name as the main site so duplicate postings are shown once
     category: national
     type: workday
     careers_url: https://hntb.wd5.myworkdayjobs.com/HNTB_University_Careers
@@ -200,15 +202,14 @@ employers:
     name: Jacobs
     category: national
     type: html
-    careers_url: https://jacobs.jobs/locations/las-vegas-nv/jobs/
+    careers_url: https://careers.jacobs.com/en_US/careers/SearchJobs
     verified: >-
-      search-index: the ATS is careers.jacobs.com (Avature, /en_US/careers/JobDetail/<slug>/<id>);
-      jacobs.jobs is Jacobs' official DirectEmployers job site with a server-rendered
-      Las Vegas page, which is simpler to parse. Link regex needs a live probe.
+      search-index: Avature portal; postings at careers.jacobs.com/en_US/careers/JobDetail/<slug>/<id>.
+      The first try (jacobs.jobs Las Vegas page) returned 0 links in a live probe.
+      Keyword-in-path search URL still needs a live check with `job-watch links`.
     options:
-      url: https://jacobs.jobs/locations/las-vegas-nv/jobs/
-      link_regex: "jacobs\\.jobs/.+/job/?$"
-      default_location: Las Vegas, NV
+      url: https://careers.jacobs.com/en_US/careers/SearchJobs/Las%20Vegas?jobRecordsPerPage=100
+      link_regex: "/careers/JobDetail/"
 
   - id: stantec
     name: Stantec
