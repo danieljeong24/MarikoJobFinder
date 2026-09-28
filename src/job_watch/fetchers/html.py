@@ -10,6 +10,9 @@ Two modes:
 
 2. Link mode — every <a> whose href matches `link_regex` is a job:
      link_regex: "/careers/[^/]+$"
+   The location is read from the text around the link (its "row"): any
+   "City, ST" / "City, State" found there. `default_location` is used if
+   none is found.
 
 Common options:
   url:              page to fetch
@@ -18,15 +21,23 @@ Common options:
   wait_selector:    with render_js, wait for this selector before reading
   default_location: used when no location selector / no location text
   exclude_titles:   list of link texts to ignore (nav links like "Apply")
+
+Paging (optional), for lists split across pages via a query parameter:
+  page_param:  e.g. "jobOffset"
+  page_step:   how much the parameter grows per page (e.g. 10)
+  page_start:  first value (default 0)
+  max_pages:   stop after this many pages (default 20); paging also stops
+               when a page adds no new postings
 """
 
 from __future__ import annotations
 
 import re
-from urllib.parse import urljoin
+from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 
 from bs4 import BeautifulSoup
 
+from ..filters import US_STATES
 from ..models import Posting
 from . import browser
 from .base import ConfigError, Fetcher, clean
@@ -42,16 +53,24 @@ class HtmlFetcher(Fetcher):
             raise ConfigError(f"{employer.id}: html needs item_selector or link_regex")
 
     def fetch(self) -> list[Posting]:
-        urls = [self.options["url"], *self.options.get("extra_urls", [])]
+        o = self.options
         postings: list[Posting] = []
         seen: set[str] = set()
-        for url in urls:
-            if self.options.get("render_js"):
-                html = browser.render(self.http, url, self.options.get("wait_selector"))
-            else:
-                html = self.http.get(url).text
-            for p in self.parse(html, url):
-                if p.url not in seen:
+        for base in [o["url"], *o.get("extra_urls", [])]:
+            pages = int(o.get("max_pages", 20)) if o.get("page_param") else 1
+            for i in range(pages):
+                url = base
+                if o.get("page_param"):
+                    value = int(o.get("page_start", 0)) + i * int(o.get("page_step", 1))
+                    url = _with_param(base, o["page_param"], value)
+                if o.get("render_js"):
+                    html = browser.render(self.http, url, o.get("wait_selector"))
+                else:
+                    html = self.http.get(url).text
+                new = [p for p in self.parse(html, url) if p.url not in seen]
+                if not new:
+                    break
+                for p in new:
                     seen.add(p.url)
                     postings.append(p)
         return postings
@@ -92,5 +111,53 @@ class HtmlFetcher(Fetcher):
                 if not rx.search(url) or not title or title.lower() in skip or url in seen:
                     continue
                 seen.add(url)
-                out.append(self.make_posting(title=title, location=default_loc, url=url))
+                location = _row_location(a, rx, base_url) or default_loc
+                out.append(self.make_posting(title=title, location=location, url=url))
         return out
+
+
+def _with_param(url: str, name: str, value) -> str:
+    parts = urlsplit(url)
+    query = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if k != name]
+    query.append((name, str(value)))
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+
+
+_STATE_ALT = "|".join(
+    [re.escape(n) for n in sorted(US_STATES.values(), key=len, reverse=True)] + list(US_STATES)
+)
+_CITY_STATE = re.compile(
+    rf"\b((?:[A-Z][A-Za-z.'\-]+ ){{0,3}}[A-Z][A-Za-z.'\-]+),\s*({_STATE_ALT})(?![A-Za-z])"
+)
+
+
+def _row_location(anchor, job_rx: re.Pattern, base_url: str) -> str:
+    """Location text in the element that holds this job link and no other job."""
+    own = urljoin(base_url, anchor["href"])
+    row = None
+    node = anchor.parent
+    while node is not None and node.name not in ("body", "html", "[document]"):
+        others = {
+            urljoin(base_url, x["href"])
+            for x in node.find_all("a", href=True)
+            if job_rx.search(urljoin(base_url, x["href"]))
+        }
+        if others - {own}:
+            break
+        row = node
+        node = node.parent
+    if row is None:
+        return ""
+    # Leave out the job title itself so "Highway Engineer Las Vegas, NV"
+    # doesn't read as a city called "Highway Engineer Las Vegas".
+    text = " | ".join(
+        clean(t) for t in row.find_all(string=True) if anchor not in t.parents and clean(t)
+    )
+    found: list[str] = []
+    for m in _CITY_STATE.finditer(text):
+        loc = f"{m.group(1)}, {m.group(2)}"
+        if loc not in found:
+            found.append(loc)
+    if re.search(r"(?<![A-Za-z])(remote|hybrid)(?![A-Za-z])", text, re.IGNORECASE):
+        found.append("Remote/Hybrid")
+    return " / ".join(found)

@@ -65,9 +65,10 @@ uv sync --extra browser && uv run playwright install chromium
 ```
 
 If Playwright isn't installed, those employers show up under "sites that
-failed" and every other employer still runs. **In the shipped config only
-`gcw` needs Playwright**, because Betterteam returns 403 to plain HTTP
-clients. Everything else uses a JSON API, an RSS feed or server-rendered
+failed" and every other employer still runs. **In the shipped config,
+`gcw` and `jacobs` need Playwright.** Betterteam (GCW) returns 403 to plain
+HTTP clients, and Jacobs' Avature portal only builds its job list in the
+browser. Everything else uses a JSON API, an RSS feed or server-rendered
 HTML.
 
 ### Environment variables (`.env`)
@@ -145,6 +146,16 @@ decided a particular endpoint is fine to use anyway (for example, an
 official public feed), add `respect_robots_txt: false` to that one employer.
 The global setting stays on for everything else.
 
+In the shipped config, the five NEOGOV agencies and AECOM have
+`respect_robots_txt: false`:
+- governmentjobs.com's robots.txt admits only named search engines and
+  Indeed.
+- SmartRecruiters' API admits only LinkedIn.
+- The tool reads one public feed or API page per employer per week.
+
+Horrocks (UltiPro) is disabled, because its robots.txt forbids the data
+endpoint specifically.
+
 **Politeness.** Every request goes through `http.py`:
 - a real User-Agent (set it in `settings.user_agent`)
 - a delay between requests to the same host (`request_delay_seconds`, default 2s)
@@ -163,11 +174,11 @@ starting list. After that you only see changes.
 | hdr | HDR | Oracle Taleo (`hdr.taleo.net`, section `ex`, portal 101430233) | `taleo` |
 | hntb, hntb-university | HNTB | Workday (`hntb.wd5`, sites `HNTB_Careers` / `HNTB_University_Careers`) | `workday` |
 | wsp | WSP | Oracle Recruiting Cloud (`emit.fa.ca3.oraclecloud.com`, site `CX_2001`) | `oracle_hcm` |
-| jacobs | Jacobs | Avature (`careers.jacobs.com`), read as a web page with a Las Vegas keyword search | `html` |
+| jacobs | Jacobs | Avature (`careers.jacobs.com`), rendered with Playwright, Las Vegas keyword search | `html` + `render_js` |
 | stantec | Stantec | Oracle Taleo (`stantec.taleo.net`, portal id auto-discovered) | `taleo` |
 | aecom | AECOM | SmartRecruiters (`AECOM2`) | `smartrecruiters` |
 | atkinsrealis | AtkinsRéalis | Workday (`slihrms.wd3`, site `Careers`) | `workday` |
-| horrocks | Horrocks | UKG Pro / UltiPro (`recruiting2.ultipro.com/HOR1015HOCK`) | `ultipro` |
+| horrocks | Horrocks | UKG Pro / UltiPro (`recruiting2.ultipro.com/HOR1015HOCK`). **Disabled**: robots.txt forbids its data endpoint | `ultipro` |
 | gcw | GCW | Betterteam (`gcwengineering.betterteam.com`) | `html` |
 | lochsa | Lochsa Engineering | Own site, pages under `/careers/` | `html` |
 | ca-group | CA Group | Own site (they usually ask for mailed resumes) | `html` |

@@ -204,12 +204,16 @@ employers:
     type: html
     careers_url: https://careers.jacobs.com/en_US/careers/SearchJobs
     verified: >-
-      search-index: Avature portal; postings at careers.jacobs.com/en_US/careers/JobDetail/<slug>/<id>.
-      The first try (jacobs.jobs Las Vegas page) returned 0 links in a live probe.
-      Keyword-in-path search URL still needs a live check with `job-watch links`.
+      live `job-watch links --render-js`: Avature portal, JS-rendered; postings link to
+      /en_US/careers/JobDetail/<slug>/<id>; list pages via jobRecordsPerPage/jobOffset.
+      Location is read from the text next to each link.
     options:
-      url: https://careers.jacobs.com/en_US/careers/SearchJobs/Las%20Vegas?jobRecordsPerPage=100
+      url: https://careers.jacobs.com/en_US/careers/SearchJobs/Las%20Vegas?jobRecordsPerPage=50
       link_regex: "/careers/JobDetail/"
+      render_js: true
+      page_param: jobOffset
+      page_step: 50
+      max_pages: 5
 
   - id: stantec
     name: Stantec
@@ -229,6 +233,9 @@ employers:
     name: AECOM
     category: national
     type: smartrecruiters
+    # Decided 2026-09-28: this site's robots.txt only admits named search
+    # engines; we read one public feed per week, so skip the check here.
+    respect_robots_txt: false
     careers_url: https://careers.smartrecruiters.com/AECOM2
     verified: >-
       search-index: postings at jobs.smartrecruiters.com/AECOM2/<id>-... (e.g. Entry-Level
@@ -254,6 +261,10 @@ employers:
     name: Horrocks
     category: national
     type: ultipro
+    # robots.txt on recruiting2.ultipro.com disallows the JobBoardView data
+    # endpoint the board loads jobs from, so this stays off. Check
+    # https://www.horrocks.net/careers by hand.
+    enabled: false
     careers_url: https://recruiting2.ultipro.com/HOR1015HOCK/JobBoard/0deeffac-9d40-443a-9999-b091c384d090
     verified: >-
       search-index: "Horrocks Job Board" at recruiting2.ultipro.com/HOR1015HOCK/JobBoard/0deeffac-...
@@ -312,6 +323,9 @@ employers:
     name: State of Nevada (incl. NDOT)
     category: public
     type: neogov
+    # Decided 2026-09-28: this site's robots.txt only admits named search
+    # engines; we read one public feed per week, so skip the check here.
+    respect_robots_txt: false
     careers_url: https://www.governmentjobs.com/careers/nv
     verified: >-
       search-index: State of Nevada moved from NVAPPS/NEATS to GovernmentJobs
@@ -323,6 +337,9 @@ employers:
     name: RTC of Southern Nevada
     category: public
     type: neogov
+    # Decided 2026-09-28: this site's robots.txt only admits named search
+    # engines; we read one public feed per week, so skip the check here.
+    respect_robots_txt: false
     careers_url: https://www.governmentjobs.com/careers/rtc
     verified: "search-index: job bulletins at governmentjobs.com/careers/rtc/jobs/..."
     options:
@@ -333,6 +350,9 @@ employers:
     name: Clark County
     category: public
     type: neogov
+    # Decided 2026-09-28: this site's robots.txt only admits named search
+    # engines; we read one public feed per week, so skip the check here.
+    respect_robots_txt: false
     careers_url: https://www.governmentjobs.com/careers/clarkcounty
     verified: "search-index: governmentjobs.com/careers/clarkcounty (e.g. assistant/associate engineer)"
     options:
@@ -343,6 +363,9 @@ employers:
     name: City of Las Vegas
     category: public
     type: neogov
+    # Decided 2026-09-28: this site's robots.txt only admits named search
+    # engines; we read one public feed per week, so skip the check here.
+    respect_robots_txt: false
     careers_url: https://www.governmentjobs.com/careers/lasvegas
     verified: "search-index: governmentjobs.com/careers/lasvegas (e.g. Engineering Associate)"
     options:
@@ -353,6 +376,9 @@ employers:
     name: City of Henderson
     category: public
     type: neogov
+    # Decided 2026-09-28: this site's robots.txt only admits named search
+    # engines; we read one public feed per week, so skip the check here.
+    respect_robots_txt: false
     careers_url: https://www.governmentjobs.com/careers/henderson
     verified: "search-index: governmentjobs.com/careers/henderson (e.g. Utility Services Engineer I)"
     options:
