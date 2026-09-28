@@ -37,8 +37,9 @@ class LevelFilter(BaseModel):
 class DisciplineFilter(BaseModel):
     """Civil/transportation gate.
 
-    Passes when nothing in ``exclude`` matches AND either something in
-    ``include`` matches, or a ``generic`` word (e.g. "engineer") matches.
+    Passes when something in ``include`` matches (title or department), or
+    when nothing in ``exclude`` matches and a ``generic`` word (e.g.
+    "engineer") is in the title.
     """
 
     model_config = ConfigDict(extra="forbid")

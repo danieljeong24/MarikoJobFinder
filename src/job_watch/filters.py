@@ -83,12 +83,14 @@ def check_discipline(posting: Posting, filters: Filters) -> tuple[bool, str]:
     text = " | ".join(
         getattr(posting, f) for f in d.match_fields if getattr(posting, f, "")
     )
-    excluded = find_keywords(posting.title, d.exclude)
-    if excluded:
-        return False, f"discipline: excluded by {excluded}"
+    # A civil/transportation term wins over an exclusion ("Civil Engineer -
+    # Data Center" is still civil); exclusions only veto the generic fallback.
     included = find_keywords(text, d.include)
     if included:
         return True, f"discipline: matched {included}"
+    excluded = find_keywords(posting.title, d.exclude)
+    if excluded:
+        return False, f"discipline: excluded by {excluded}"
     generic = find_keywords(posting.title, d.generic)
     if generic:
         return True, f"discipline: generic {generic}"
