@@ -13,6 +13,7 @@ Two modes:
 
 Common options:
   url:              page to fetch
+  extra_urls:       more pages with the same layout (e.g. one per job category)
   render_js:        true to render with Playwright first (optional dependency)
   wait_selector:    with render_js, wait for this selector before reading
   default_location: used when no location selector / no location text
@@ -41,12 +42,19 @@ class HtmlFetcher(Fetcher):
             raise ConfigError(f"{employer.id}: html needs item_selector or link_regex")
 
     def fetch(self) -> list[Posting]:
-        url = self.options["url"]
-        if self.options.get("render_js"):
-            html = browser.render(self.http, url, self.options.get("wait_selector"))
-        else:
-            html = self.http.get(url).text
-        return self.parse(html, url)
+        urls = [self.options["url"], *self.options.get("extra_urls", [])]
+        postings: list[Posting] = []
+        seen: set[str] = set()
+        for url in urls:
+            if self.options.get("render_js"):
+                html = browser.render(self.http, url, self.options.get("wait_selector"))
+            else:
+                html = self.http.get(url).text
+            for p in self.parse(html, url):
+                if p.url not in seen:
+                    seen.add(p.url)
+                    postings.append(p)
+        return postings
 
     def parse(self, html: str, base_url: str) -> list[Posting]:
         soup = BeautifulSoup(html, "html.parser")

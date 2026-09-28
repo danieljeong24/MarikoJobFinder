@@ -215,13 +215,14 @@ employers:
     name: Stantec
     category: national
     type: taleo
-    careers_url: https://stantec.taleo.net/careersection/ex/jobsearch.ftl
+    careers_url: https://stantec.taleo.net/careersection/ex1/jobsearch.ftl
     verified: >-
-      search-index: stantec.taleo.net/careersection/ex1/jobdetail.ftl?job=... and
-      /careersection/ex/... postings. Portal id is auto-discovered from jobsearch.ftl.
+      search-index: current postings are stantec.taleo.net/careersection/ex1/jobdetail.ftl?job=...;
+      /careersection/ex/ serves an "unsupported" page (live probe could not find a
+      portal id there). Portal id is auto-discovered from ex1/jobsearch.ftl.
     options:
       host: stantec.taleo.net
-      section: ex
+      section: ex1
       keyword: Las Vegas
 
   - id: aecom
@@ -284,13 +285,15 @@ employers:
     type: html
     careers_url: https://www.lochsa.com/careers
     verified: >-
-      search-index: no ATS; postings are pages at lochsa.com/careers/<slug>
-      (e.g. civil-designer---land-development). Slug style suggests Wix; if the
-      probe finds 0 links, set render_js: true.
+      live `job-watch links`: /careers is server-rendered and links to category
+      pages (/career-category/civil, /structural, /surveying); postings are
+      lochsa.com/careers/<slug> pages. Lochsa also has a Boise office (208 area
+      code), so postings without a location show as [location unverified].
     options:
-      url: https://www.lochsa.com/careers
+      url: https://www.lochsa.com/career-category/civil
+      extra_urls:
+        - https://www.lochsa.com/career-category/structural
       link_regex: "lochsa\\.com/careers/[^/?#]+$"
-      render_js: false
 
   - id: ca-group
     name: CA Group
