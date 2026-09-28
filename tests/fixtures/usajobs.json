@@ -1,0 +1,50 @@
+{
+  "LanguageCode": "EN",
+  "SearchParameters": {},
+  "SearchResult": {
+    "SearchResultCount": 3,
+    "SearchResultCountAll": 3,
+    "SearchResultItems": [
+      {
+        "MatchedObjectId": "845000101",
+        "MatchedObjectDescriptor": {
+          "PositionID": "BOR-26-0101",
+          "PositionTitle": "Civil Engineer",
+          "PositionURI": "https://www.usajobs.gov:443/job/845000101",
+          "PositionLocationDisplay": "Boulder City, Nevada",
+          "OrganizationName": "Bureau of Reclamation",
+          "DepartmentName": "Department of the Interior",
+          "PublicationStartDate": "2026-09-15T00:00:00.0000",
+          "UserArea": {"Details": {"LowGrade": "7", "HighGrade": "9"}}
+        }
+      },
+      {
+        "MatchedObjectId": "845000102",
+        "MatchedObjectDescriptor": {
+          "PositionID": "USACE-26-0102",
+          "PositionTitle": "Supervisory Civil Engineer",
+          "PositionURI": "https://www.usajobs.gov:443/job/845000102",
+          "PositionLocationDisplay": "Las Vegas, Nevada",
+          "OrganizationName": "U.S. Army Corps of Engineers",
+          "DepartmentName": "Department of the Army",
+          "PublicationStartDate": "2026-09-16T00:00:00.0000",
+          "UserArea": {"Details": {"LowGrade": "13", "HighGrade": "13"}}
+        }
+      },
+      {
+        "MatchedObjectId": "845000103",
+        "MatchedObjectDescriptor": {
+          "PositionID": "NAVFAC-26-0103",
+          "PositionTitle": "Civil Engineer",
+          "PositionURI": "https://www.usajobs.gov:443/job/845000103",
+          "PositionLocationDisplay": "Nellis AFB, Nevada",
+          "OrganizationName": "Air Force Civil Engineer Center",
+          "DepartmentName": "Department of the Air Force",
+          "PublicationStartDate": "2026-09-17T00:00:00.0000",
+          "UserArea": {"Details": {"LowGrade": "9", "HighGrade": "11"}}
+        }
+      }
+    ],
+    "UserArea": {"NumberOfPages": "1", "IsRadialSearch": true}
+  }
+}

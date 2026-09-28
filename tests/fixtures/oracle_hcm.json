@@ -1,0 +1,27 @@
+{
+  "items": [
+    {
+      "TotalJobsCount": 2,
+      "requisitionList": [
+        {
+          "Id": "88001",
+          "Title": "Transportation Engineer in Training",
+          "PostedDate": "2026-09-12",
+          "PrimaryLocation": "Las Vegas, NV, United States",
+          "WorkplaceType": "On-site",
+          "JobFamily": "Engineering",
+          "secondaryLocations": []
+        },
+        {
+          "Id": "88002",
+          "Title": "Graduate Civil Engineer",
+          "PostedDate": "2026-09-13",
+          "PrimaryLocation": "Reno, NV, United States",
+          "WorkplaceType": "Hybrid",
+          "JobFamily": "Engineering",
+          "secondaryLocations": [{"Name": "Henderson, NV, United States"}]
+        }
+      ]
+    }
+  ]
+}

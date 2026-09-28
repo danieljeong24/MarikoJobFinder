@@ -1,0 +1,23 @@
+[
+  {
+    "id": "a1b2c3d4-0000-4000-8000-000000000001",
+    "text": "Civil Engineer - Entry Level",
+    "hostedUrl": "https://jobs.lever.co/examplefirm/a1b2c3d4-0000-4000-8000-000000000001",
+    "createdAt": 1758844800000,
+    "workplaceType": "hybrid",
+    "categories": {
+      "location": "North Las Vegas, NV",
+      "allLocations": ["North Las Vegas, NV"],
+      "department": "Engineering",
+      "team": "Civil"
+    }
+  },
+  {
+    "id": "a1b2c3d4-0000-4000-8000-000000000002",
+    "text": "Project Manager",
+    "hostedUrl": "https://jobs.lever.co/examplefirm/a1b2c3d4-0000-4000-8000-000000000002",
+    "createdAt": 1758844800000,
+    "workplaceType": "onsite",
+    "categories": {"location": "Las Vegas, NV", "department": "Operations"}
+  }
+]

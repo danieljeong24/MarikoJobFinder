@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:joblisting="http://www.neogov.com/namespaces/JobListing">
+  <channel>
+    <title>Clark County Jobs</title>
+    <link>https://www.governmentjobs.com/careers/clarkcounty</link>
+    <description>Job listings</description>
+    <item>
+      <guid isPermaLink="false">4004033</guid>
+      <title>Assistant/Associate Engineer</title>
+      <link>https://www.governmentjobs.com/careers/clarkcounty/jobs/4004033/assistant-associate-engineer</link>
+      <pubDate>Mon, 21 Sep 2026 12:00:00 GMT</pubDate>
+      <description>Public Works is recruiting...</description>
+      <joblisting:location>Las Vegas, NV</joblisting:location>
+      <joblisting:department>Public Works</joblisting:department>
+      <joblisting:jobId>4004033</joblisting:jobId>
+    </item>
+    <item>
+      <guid isPermaLink="false">5131829</guid>
+      <title>Principal Civil Engineer</title>
+      <link>https://www.governmentjobs.com/careers/clarkcounty/jobs/5131829/principal-civil-engineer</link>
+      <pubDate>Tue, 22 Sep 2026 12:00:00 GMT</pubDate>
+      <description>Traffic Management Division...</description>
+      <joblisting:location>Las Vegas, NV</joblisting:location>
+      <joblisting:department>Public Works</joblisting:department>
+      <joblisting:jobId>5131829</joblisting:jobId>
+    </item>
+  </channel>
+</rss>

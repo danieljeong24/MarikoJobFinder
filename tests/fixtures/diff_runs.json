@@ -1,0 +1,29 @@
+{
+  "employer_id": "examplefirm",
+  "runs": [
+    {
+      "date": "2026-09-07",
+      "postings": [
+        {"id": "A", "title": "Transportation Engineer I", "location": "Las Vegas, NV"},
+        {"id": "B", "title": "Civil EIT", "location": "Henderson, NV"},
+        {"id": "C", "title": "Senior Bridge Engineer", "location": "Las Vegas, NV"}
+      ]
+    },
+    {
+      "date": "2026-09-14",
+      "postings": [
+        {"id": "A", "title": "Transportation Engineer I", "location": "Las Vegas, NV"},
+        {"id": "C", "title": "Senior Bridge Engineer", "location": "Las Vegas, NV"},
+        {"id": "D", "title": "Junior Traffic Engineer", "location": "Las Vegas, NV"}
+      ]
+    },
+    {
+      "date": "2026-09-21",
+      "postings": [
+        {"id": "A", "title": "Transportation Engineer I", "location": "Las Vegas, NV"},
+        {"id": "B", "title": "Civil EIT", "location": "Henderson, NV"},
+        {"id": "D", "title": "Junior Traffic Engineer", "location": "Las Vegas, NV"}
+      ]
+    }
+  ]
+}
