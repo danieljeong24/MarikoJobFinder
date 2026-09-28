@@ -364,8 +364,6 @@ employers:
     name: USAJOBS (0810 Civil Engineering)
     category: federal
     type: usajobs
-    # Turn on once USAJOBS_API_KEY / USAJOBS_EMAIL are in .env.
-    enabled: false
     careers_url: https://www.usajobs.gov/search/results/?j=0810&l=Las%20Vegas%2C%20Nevada&r=50
     verified: "official API, https://developer.usajobs.gov/"
     options:
