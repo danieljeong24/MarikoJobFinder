@@ -1,0 +1,19 @@
+{
+  "totalCount": 2,
+  "opportunities": [
+    {
+      "Id": "f2c53c84-bd66-45f6-99d6-40d6684ab9a3",
+      "Title": "Transportation EIT",
+      "PostedDate": "2026-09-01T00:00:00Z",
+      "JobCategoryName": "Engineering",
+      "Locations": [{"Address": {"City": "Henderson", "State": {"Code": "NV"}}}]
+    },
+    {
+      "Id": "f2c53c84-bd66-45f6-99d6-40d6684ab9a4",
+      "Title": "Municipal Client Manager",
+      "PostedDate": "2026-09-02T00:00:00Z",
+      "JobCategoryName": "Management",
+      "Locations": [{"Address": {"City": "Las Vegas", "State": {"Code": "NV"}}}]
+    }
+  ]
+}

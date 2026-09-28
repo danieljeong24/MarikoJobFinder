@@ -1,0 +1,21 @@
+{
+  "jobs": [
+    {
+      "id": 4455001,
+      "title": "Junior Traffic Engineer",
+      "absolute_url": "https://job-boards.greenhouse.io/examplefirm/jobs/4455001",
+      "location": {"name": "Henderson, Nevada"},
+      "updated_at": "2026-09-20T10:11:12-04:00",
+      "departments": [{"id": 1, "name": "Transportation"}]
+    },
+    {
+      "id": 4455002,
+      "title": "Software Engineer I",
+      "absolute_url": "https://job-boards.greenhouse.io/examplefirm/jobs/4455002",
+      "location": {"name": "Las Vegas, NV"},
+      "updated_at": "2026-09-21T10:11:12-04:00",
+      "departments": [{"id": 2, "name": "Technology"}]
+    }
+  ],
+  "meta": {"total": 2}
+}

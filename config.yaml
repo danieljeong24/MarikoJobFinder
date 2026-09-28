@@ -1,0 +1,373 @@
+# job-watch configuration
+#
+# Each employer's `type` picks a fetcher (see README "Adding an employer").
+# `verified:` records how the ATS / tenant was identified. Entries marked
+# "search-index" were confirmed from job URLs indexed by search engines, NOT
+# by a live request from the build machine. Run `job-watch probe --all`
+# once from your own machine to confirm each one returns postings.
+
+settings:
+  db_path: ~/.local/share/job-watch/jobs.db
+  request_delay_seconds: 2.0
+  # None of the configured sites require a contact address. USAJOBS gets its
+  # email from USAJOBS_EMAIL in .env, not from here.
+  user_agent: "job-watch/0.1 (personal weekly job search)"
+  max_retries: 4
+  backoff_base_seconds: 2.0
+  respect_robots_txt: true
+  timeout_seconds: 30
+
+filters:
+  # Title must contain at least one `include` term and no `exclude` term.
+  # Matching is case-insensitive and whole-word ("Engineer I" != "Engineer II").
+  level:
+    include:
+      - entry level
+      - EIT
+      - engineer in training
+      - engineer I
+      - engineer II
+      - I
+      - II
+      - I/II
+      - analyst
+      - graduate engineer
+      - graduate
+      - junior
+      - jr
+      - associate engineer
+      - engineering associate
+      - assistant engineer
+      - new grad
+      - recent graduate
+      - early career
+      - rotational engineer
+      - designer
+    exclude:
+      - senior
+      - sr
+      - principal
+      - manager
+      - lead
+      - director
+      - chief
+      - supervisor
+      - supervising
+      - head
+      - III
+      - IV
+      - V
+      - intern
+      - internship
+      - co-op
+      - technician
+      - inspector
+
+  # Civil/transportation gate. Passes if an `include` term is in the title or
+  # department; otherwise passes if a `generic` term (plain "engineer") is in
+  # the title and no `exclude` term is.
+  discipline:
+    include:
+      - civil
+      - transportation
+      - traffic
+      - roadway
+      - highway
+      - transit
+      - drainage
+      - hydraulics
+      - land development
+      - public works
+      - design engineering
+      - EIT
+      - engineer in training
+    generic:
+      - engineer
+      - engineering
+    exclude:
+      - software
+      - electrical
+      - mechanical
+      - chemical
+      - controls
+      - network
+      - systems
+      - data
+      - cloud
+      - security
+      - financial
+      - finance
+      - accounting
+      - business
+      - marketing
+      - HR
+      - human resources
+      - IT
+      - payroll
+      - sales
+      - nuclear
+      - process
+      - biomedical
+    match_fields: [title, department]
+
+  location:
+    include:
+      - Las Vegas
+      - North Las Vegas
+      - Henderson
+      - Summerlin
+      - Paradise
+      - Enterprise
+      - Spring Valley
+      - Boulder City
+      - Clark County
+    # If a location names a state, it must be one of these (rules out Henderson, KY
+    # and Las Vegas, NM). Locations with no state at all are accepted.
+    require_state: [NV, Nevada]
+    remote_ok: true
+    remote_keywords: [remote, hybrid, virtual, telework]
+    # "3 Locations", "Multiple", or blank: keep, flagged "[location unverified]".
+    keep_unknown: true
+
+employers:
+  # ---------------------------------------------------------------- national
+  - id: kimley-horn
+    name: Kimley-Horn
+    category: national
+    type: icims
+    careers_url: https://careers-kimley-horn.icims.com/jobs/search
+    verified: >-
+      search-index: Las Vegas postings at careers-kimley-horn.icims.com/jobs/<id>/.../job
+      (e.g. 23448 Senior Civil Designer Tech, 18290 Experienced Civil EIT)
+    options:
+      host: careers-kimley-horn.icims.com
+      search_keyword: Las Vegas
+
+  - id: hdr
+    name: HDR
+    category: national
+    type: taleo
+    careers_url: https://hdr.taleo.net/careersection/ex/jobsearch.ftl?lang=en&portal=101430233
+    verified: >-
+      search-index: hdr.taleo.net/careersection/ex/jobsearch.ftl?portal=101430233 and
+      jobdetail.ftl?job=... postings
+    options:
+      host: hdr.taleo.net
+      section: ex
+      portal: "101430233"
+      keyword: Las Vegas
+
+  - id: hntb
+    name: HNTB
+    category: national
+    type: workday
+    careers_url: https://hntb.wd5.myworkdayjobs.com/HNTB_Careers
+    verified: >-
+      search-index: postings at hntb.wd5.myworkdayjobs.com/en-US/HNTB_Careers/job/...
+      (Office Engineer I, Field Engineer I, ...)
+    options:
+      host: hntb.wd5.myworkdayjobs.com
+      tenant: hntb
+      site: HNTB_Careers
+      search_text: Las Vegas
+
+  - id: hntb-university
+    name: HNTB (University)
+    category: national
+    type: workday
+    careers_url: https://hntb.wd5.myworkdayjobs.com/HNTB_University_Careers
+    verified: "search-index: hntb.wd5.myworkdayjobs.com/HNTB_University_Careers"
+    notes: HNTB's separate new-grad / intern site.
+    options:
+      host: hntb.wd5.myworkdayjobs.com
+      tenant: hntb
+      site: HNTB_University_Careers
+
+  - id: wsp
+    name: WSP
+    category: national
+    type: oracle_hcm
+    careers_url: https://emit.fa.ca3.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_2001
+    verified: >-
+      search-index: WSP postings at emit.fa.ca3.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_2001/job/<id>;
+      wsp.com/en-us/careers/job-opportunities links there
+    options:
+      host: emit.fa.ca3.oraclecloud.com
+      site: CX_2001
+      keyword: Las Vegas
+
+  - id: jacobs
+    name: Jacobs
+    category: national
+    type: html
+    careers_url: https://jacobs.jobs/locations/las-vegas-nv/jobs/
+    verified: >-
+      search-index: the ATS is careers.jacobs.com (Avature, /en_US/careers/JobDetail/<slug>/<id>);
+      jacobs.jobs is Jacobs' official DirectEmployers job site with a server-rendered
+      Las Vegas page, which is simpler to parse. Link regex needs a live probe.
+    options:
+      url: https://jacobs.jobs/locations/las-vegas-nv/jobs/
+      link_regex: "jacobs\\.jobs/.+/job/?$"
+      default_location: Las Vegas, NV
+
+  - id: stantec
+    name: Stantec
+    category: national
+    type: taleo
+    careers_url: https://stantec.taleo.net/careersection/ex/jobsearch.ftl
+    verified: >-
+      search-index: stantec.taleo.net/careersection/ex1/jobdetail.ftl?job=... and
+      /careersection/ex/... postings. Portal id is auto-discovered from jobsearch.ftl.
+    options:
+      host: stantec.taleo.net
+      section: ex
+      keyword: Las Vegas
+
+  - id: aecom
+    name: AECOM
+    category: national
+    type: smartrecruiters
+    careers_url: https://careers.smartrecruiters.com/AECOM2
+    verified: >-
+      search-index: postings at jobs.smartrecruiters.com/AECOM2/<id>-... (e.g. Entry-Level
+      Civil Engineer); aecom.jobs is a DirectEmployers mirror
+    options:
+      company: AECOM2
+      city: Las Vegas
+      country: us
+
+  - id: atkinsrealis
+    name: AtkinsRéalis
+    category: national
+    type: workday
+    careers_url: https://slihrms.wd3.myworkdayjobs.com/Careers
+    verified: "search-index: slihrms.wd3.myworkdayjobs.com/en-US/Careers (AtkinsRéalis, ex-SNC-Lavalin \"sli\")"
+    options:
+      host: slihrms.wd3.myworkdayjobs.com
+      tenant: slihrms
+      site: Careers
+      search_text: Las Vegas
+
+  - id: horrocks
+    name: Horrocks
+    category: national
+    type: ultipro
+    careers_url: https://recruiting2.ultipro.com/HOR1015HOCK/JobBoard/0deeffac-9d40-443a-9999-b091c384d090
+    verified: >-
+      search-index: "Horrocks Job Board" at recruiting2.ultipro.com/HOR1015HOCK/JobBoard/0deeffac-...
+      with OpportunityDetail postings
+    options:
+      host: recruiting2.ultipro.com
+      tenant: HOR1015HOCK
+      board_id: 0deeffac-9d40-443a-9999-b091c384d090
+
+  # ------------------------------------------------------------------- local
+  - id: gcw
+    name: GCW Engineers & Surveyors
+    category: local
+    type: html
+    careers_url: https://gcwengineering.betterteam.com/
+    verified: >-
+      search-index: gcwengineering.com/careers links to Betterteam; postings at
+      gcwengineering.betterteam.com/<slug>. GCW has LV and Reno offices, so postings
+      show as [location unverified] until a location selector is added after a probe.
+    options:
+      url: https://gcwengineering.betterteam.com/
+      link_regex: "^https://gcwengineering\\.betterteam\\.com/[a-z0-9-]+/?$"
+
+  - id: lochsa
+    name: Lochsa Engineering
+    category: local
+    type: html
+    careers_url: https://www.lochsa.com/careers
+    verified: >-
+      search-index: no ATS; postings are pages at lochsa.com/careers/<slug>
+      (e.g. civil-designer---land-development). Slug style suggests Wix; if the
+      probe finds 0 links, set render_js: true.
+    options:
+      url: https://www.lochsa.com/careers
+      link_regex: "lochsa\\.com/careers/[^/?#]+$"
+      render_js: false
+
+  - id: ca-group
+    name: CA Group
+    category: local
+    type: html
+    careers_url: https://www.c-agroup.com/careers
+    verified: >-
+      search-index: no ATS; careers page asks for resumes by mail. Watches for any
+      sub-page under /careers appearing (i.e. a posting). Expect 0 results normally.
+    options:
+      url: https://www.c-agroup.com/careers
+      link_regex: "c-agroup\\.com/careers/[^/?#]+"
+
+  # ------------------------------------------------------------------ public
+  - id: nv-state
+    name: State of Nevada (incl. NDOT)
+    category: public
+    type: neogov
+    careers_url: https://www.governmentjobs.com/careers/nv
+    verified: >-
+      search-index: State of Nevada moved from NVAPPS/NEATS to GovernmentJobs
+      (governmentjobs.com/careers/nv) effective 2026-01-01; NDOT jobs are posted there.
+    options:
+      agency: nv
+
+  - id: rtc-snv
+    name: RTC of Southern Nevada
+    category: public
+    type: neogov
+    careers_url: https://www.governmentjobs.com/careers/rtc
+    verified: "search-index: job bulletins at governmentjobs.com/careers/rtc/jobs/..."
+    options:
+      agency: rtc
+      default_location: Las Vegas, NV
+
+  - id: clark-county
+    name: Clark County
+    category: public
+    type: neogov
+    careers_url: https://www.governmentjobs.com/careers/clarkcounty
+    verified: "search-index: governmentjobs.com/careers/clarkcounty (e.g. assistant/associate engineer)"
+    options:
+      agency: clarkcounty
+      default_location: Las Vegas, NV
+
+  - id: city-of-las-vegas
+    name: City of Las Vegas
+    category: public
+    type: neogov
+    careers_url: https://www.governmentjobs.com/careers/lasvegas
+    verified: "search-index: governmentjobs.com/careers/lasvegas (e.g. Engineering Associate)"
+    options:
+      agency: lasvegas
+      default_location: Las Vegas, NV
+
+  - id: city-of-henderson
+    name: City of Henderson
+    category: public
+    type: neogov
+    careers_url: https://www.governmentjobs.com/careers/henderson
+    verified: "search-index: governmentjobs.com/careers/henderson (e.g. Utility Services Engineer I)"
+    options:
+      agency: henderson
+      default_location: Henderson, NV
+
+  # ----------------------------------------------------------------- federal
+  - id: usajobs-0810
+    name: USAJOBS (0810 Civil Engineering)
+    category: federal
+    type: usajobs
+    careers_url: https://www.usajobs.gov/search/results/?j=0810&l=Las%20Vegas%2C%20Nevada&r=50
+    verified: "official API, https://developer.usajobs.gov/"
+    options:
+      job_category_code: "0810"
+      location_name: Las Vegas, Nevada
+      radius_miles: 50
+      # Entry-level federal civil engineers usually start at GS-5/7/9.
+      max_low_grade: 9
+    filters:
+      # Federal titles are just "Civil Engineer"; grade + series + radius do the work.
+      skip_level: true
+      skip_discipline: true
+      skip_location: true

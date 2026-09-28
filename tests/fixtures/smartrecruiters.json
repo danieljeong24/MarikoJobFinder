@@ -1,0 +1,23 @@
+{
+  "offset": 0,
+  "limit": 100,
+  "totalFound": 2,
+  "content": [
+    {
+      "id": "744000150000001",
+      "name": "Entry-Level Civil Engineer - Transportation",
+      "releasedDate": "2026-09-10T15:00:00.000Z",
+      "location": {"city": "Las Vegas", "region": "NV", "country": "us",
+                   "fullLocation": "Las Vegas, NV, United States", "remote": false, "hybrid": false},
+      "department": {"label": "Transportation"}
+    },
+    {
+      "id": "744000150000002",
+      "name": "Traffic Engineer II",
+      "releasedDate": "2026-09-11T15:00:00.000Z",
+      "location": {"city": "Denver", "region": "CO", "country": "us",
+                   "fullLocation": "Denver, CO, United States", "remote": true, "hybrid": false},
+      "department": {"label": "Transportation"}
+    }
+  ]
+}

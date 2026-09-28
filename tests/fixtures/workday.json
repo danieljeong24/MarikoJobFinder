@@ -1,0 +1,26 @@
+{
+  "total": 3,
+  "jobPostings": [
+    {
+      "title": "Transportation Engineer I",
+      "externalPath": "/job/Las-Vegas-NV/Transportation-Engineer-I_R-30101",
+      "locationsText": "Las Vegas, NV",
+      "postedOn": "Posted 3 Days Ago",
+      "bulletFields": ["R-30101"]
+    },
+    {
+      "title": "Senior Bridge Engineer",
+      "externalPath": "/job/Las-Vegas-NV/Senior-Bridge-Engineer_R-30102",
+      "locationsText": "Las Vegas, NV",
+      "postedOn": "Posted Today",
+      "bulletFields": ["R-30102"]
+    },
+    {
+      "title": "Roadway Design EIT",
+      "externalPath": "/job/Phoenix-AZ/Roadway-Design-EIT_R-30103",
+      "locationsText": "2 Locations",
+      "postedOn": "Posted 30+ Days Ago",
+      "bulletFields": ["R-30103"]
+    }
+  ]
+}
