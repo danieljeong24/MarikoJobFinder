@@ -23,7 +23,7 @@ def _line(p: StoredPosting) -> list[str]:
     return lines
 
 
-def render_text(report: RunReport) -> str:
+def render_text(report: RunReport, heading: str = "NEW POSTINGS") -> str:
     out: list[str] = []
     bar = "=" * 72
     out.append(bar)
@@ -31,7 +31,7 @@ def render_text(report: RunReport) -> str:
     out.append(bar)
 
     if report.new:
-        out.append(f"\nNEW POSTINGS ({len(report.new)})")
+        out.append(f"\n{heading} ({len(report.new)})")
         for cat, label in CATEGORY_ORDER + [(None, "Other")]:
             group = [
                 p for p in report.new

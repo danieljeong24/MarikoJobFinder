@@ -95,6 +95,7 @@ job-watch probe hntb --verbose     # fetch one employer; show every posting and 
 job-watch probe --all              # smoke-test every employer (no DB writes)
 job-watch list                     # open matching postings in the DB
 job-watch list --status closed
+job-watch list --email             # email every open matching posting (not just new ones)
 job-watch check-config             # validate config.yaml
 job-watch links https://example.com/careers   # list every link on a page (for html entries)
 ```

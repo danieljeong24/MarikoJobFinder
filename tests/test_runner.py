@@ -177,3 +177,21 @@ def test_robots_status_codes_follow_rfc9309(status, allowed):
         else:
             with pytest.raises(RobotsDisallowed):
                 c.get("https://ex.com/jobs")
+
+
+def test_list_email_sends_open_postings(config, monkeypatch, tmp_path):
+    from job_watch import cli
+
+    db = tmp_path / "jobs.db"
+    store = Store(db)
+    p = Posting("clark-county", "Clark County", "Civil Engineer I", "Las Vegas, NV",
+                "https://x/1", "neogov", external_id="1")
+    store.sync_employer("clark-county", [(p, True, "", False)], date(2026, 9, 28))
+    store.close()
+
+    sent = {}
+    monkeypatch.setattr(cli, "send_digest", lambda subject, body: sent.update(s=subject, b=body))
+    rc = cli.main(["list", "--email", "--db", str(db)])
+    assert rc == 0
+    assert "1 open posting" in sent["s"]
+    assert "ALL OPEN POSTINGS (1)" in sent["b"] and "Civil Engineer I" in sent["b"]

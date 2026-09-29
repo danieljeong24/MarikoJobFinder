@@ -156,7 +156,24 @@ def cmd_list(args) -> int:
     cfg = _load(args)
     store = Store(cfg.settings.db_file)
     rows = store.list_postings(status=args.status, matched_only=not args.everything)
-    if args.json:
+    if args.email:
+        from datetime import date
+
+        from .runner import RunReport
+
+        report = RunReport(run_date=date.today().isoformat(), new=rows,
+                           categories={e.id: e.category for e in cfg.employers})
+        heading = {"open": "ALL OPEN POSTINGS", "closed": "CLOSED POSTINGS"}.get(args.status, "ALL POSTINGS")
+        text = render_text(report, heading=heading)
+        print(text)
+        try:
+            send_digest(f"job-watch: {len(rows)} open posting(s) - {report.run_date}", text)
+            print("Emailed.", file=sys.stderr)
+        except (EmailConfigError, OSError) as exc:
+            print(f"Email failed: {exc}", file=sys.stderr)
+            store.close()
+            return 2
+    elif args.json:
         print(json.dumps([r.to_dict() for r in rows], indent=2))
     else:
         for r in rows:
@@ -215,6 +232,8 @@ def build_parser() -> argparse.ArgumentParser:
     ls.add_argument("--status", choices=["open", "closed", "all"], default="open")
     ls.add_argument("--everything", action="store_true", help="include non-matching postings")
     ls.add_argument("--json", action="store_true")
+    ls.add_argument("--email", action="store_true",
+                    help="email the list (e.g. to send the full current list once)")
     ls.set_defaults(func=cmd_list)
     return p
 
