@@ -37,9 +37,10 @@ class LevelFilter(BaseModel):
 class DisciplineFilter(BaseModel):
     """Civil/transportation gate.
 
-    Passes when something in ``include`` matches (title or department), or
-    when nothing in ``exclude`` matches and a ``generic`` word (e.g.
-    "engineer") is in the title.
+    Passes when an ``include`` term is in the title; or when one is in the
+    department and the title has a ``role_words`` term; or when nothing in
+    ``exclude`` matches and a ``generic`` word (e.g. "engineer") is in the
+    title.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -47,6 +48,11 @@ class DisciplineFilter(BaseModel):
     include: list[str] = Field(default_factory=list)
     generic: list[str] = Field(default_factory=list)
     exclude: list[str] = Field(default_factory=list)
+    # A civil `include` term in the *department* only counts if the title has
+    # one of these (so a Public Works "Maintenance Worker" doesn't pass).
+    role_words: list[str] = Field(
+        default_factory=lambda: ["engineer", "engineering", "analyst", "designer", "EIT"]
+    )
     match_fields: list[Literal["title", "department"]] = Field(
         default_factory=lambda: ["title", "department"]
     )
@@ -96,6 +102,9 @@ class Employer(BaseModel):
     verified: str | None = None
     notes: str | None = None
     options: dict[str, Any] = Field(default_factory=dict)
+    # None = use settings.respect_robots_txt. Set false only for a site whose
+    # robots.txt blocks an endpoint you've decided is fine to use.
+    respect_robots_txt: bool | None = None
     filters: EmployerFilterOverrides = Field(default_factory=EmployerFilterOverrides)
 
     @field_validator("id")

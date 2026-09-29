@@ -59,13 +59,23 @@ filters:
       - V
       - intern
       - internship
+      - interns only        # "For Current/Former HNTB Interns Only"
+      - returning           # "Returning New Grad" = former interns
       - co-op
       - technician
       - inspector
+      - maintenance
+      - worker
+      - CDL
+      - laborer
+      - operator
+      - mechanic
+      - clerk
 
-  # Civil/transportation gate. Passes if an `include` term is in the title or
-  # department; otherwise passes if a `generic` term (plain "engineer") is in
-  # the title and no `exclude` term is.
+  # Civil/transportation gate. Passes if an `include` term is in the title; or
+  # in the department AND the title has a `role_words` term; otherwise passes
+  # if a `generic` term (plain "engineer") is in the title and no `exclude`
+  # term is.
   discipline:
     include:
       - civil
@@ -108,6 +118,7 @@ filters:
       - nuclear
       - process
       - biomedical
+    role_words: [engineer, engineering, analyst, designer, EIT]
     match_fields: [title, department]
 
   location:
@@ -172,7 +183,7 @@ employers:
       search_text: Las Vegas
 
   - id: hntb-university
-    name: HNTB (University)
+    name: HNTB  # same name as the main site so duplicate postings are shown once
     category: national
     type: workday
     careers_url: https://hntb.wd5.myworkdayjobs.com/HNTB_University_Careers
@@ -200,33 +211,41 @@ employers:
     name: Jacobs
     category: national
     type: html
-    careers_url: https://jacobs.jobs/locations/las-vegas-nv/jobs/
+    careers_url: https://careers.jacobs.com/en_US/careers/SearchJobs
     verified: >-
-      search-index: the ATS is careers.jacobs.com (Avature, /en_US/careers/JobDetail/<slug>/<id>);
-      jacobs.jobs is Jacobs' official DirectEmployers job site with a server-rendered
-      Las Vegas page, which is simpler to parse. Link regex needs a live probe.
+      live `job-watch links --render-js`: Avature portal, JS-rendered; postings link to
+      /en_US/careers/JobDetail/<slug>/<id>; list pages via jobRecordsPerPage/jobOffset.
+      Location is read from the text next to each link.
     options:
-      url: https://jacobs.jobs/locations/las-vegas-nv/jobs/
-      link_regex: "jacobs\\.jobs/.+/job/?$"
-      default_location: Las Vegas, NV
+      url: https://careers.jacobs.com/en_US/careers/SearchJobs/Las%20Vegas?jobRecordsPerPage=50
+      link_regex: "/careers/JobDetail/"
+      render_js: true
+      page_param: jobOffset
+      page_step: 50
+      max_pages: 5
 
   - id: stantec
     name: Stantec
     category: national
     type: taleo
-    careers_url: https://stantec.taleo.net/careersection/ex/jobsearch.ftl
+    careers_url: https://stantec.taleo.net/careersection/ex1/jobsearch.ftl
     verified: >-
-      search-index: stantec.taleo.net/careersection/ex1/jobdetail.ftl?job=... and
-      /careersection/ex/... postings. Portal id is auto-discovered from jobsearch.ftl.
+      search-index: current postings are stantec.taleo.net/careersection/ex1/jobdetail.ftl?job=...;
+      /careersection/ex/ serves an "unsupported" page (live probe could not find a
+      portal id there). Portal id is auto-discovered from ex1/jobsearch.ftl.
     options:
       host: stantec.taleo.net
-      section: ex
-      keyword: Las Vegas
+      section: ex1
+      # A "Las Vegas" keyword search returned 0 in the live probe, so fetch
+      # everything and filter locally.
 
   - id: aecom
     name: AECOM
     category: national
     type: smartrecruiters
+    # Decided 2026-09-28: this site's robots.txt only admits named search
+    # engines; we read one public feed per week, so skip the check here.
+    respect_robots_txt: false
     careers_url: https://careers.smartrecruiters.com/AECOM2
     verified: >-
       search-index: postings at jobs.smartrecruiters.com/AECOM2/<id>-... (e.g. Entry-Level
@@ -252,6 +271,10 @@ employers:
     name: Horrocks
     category: national
     type: ultipro
+    # robots.txt on recruiting2.ultipro.com disallows the JobBoardView data
+    # endpoint the board loads jobs from, so this stays off. Check
+    # https://www.horrocks.net/careers by hand.
+    enabled: false
     careers_url: https://recruiting2.ultipro.com/HOR1015HOCK/JobBoard/0deeffac-9d40-443a-9999-b091c384d090
     verified: >-
       search-index: "Horrocks Job Board" at recruiting2.ultipro.com/HOR1015HOCK/JobBoard/0deeffac-...
@@ -274,6 +297,8 @@ employers:
     options:
       url: https://gcwengineering.betterteam.com/
       link_regex: "^https://gcwengineering\\.betterteam\\.com/[a-z0-9-]+/?$"
+      # Betterteam returns 403 to plain HTTP clients; render in a real browser.
+      render_js: true
 
   - id: lochsa
     name: Lochsa Engineering
@@ -281,13 +306,18 @@ employers:
     type: html
     careers_url: https://www.lochsa.com/careers
     verified: >-
-      search-index: no ATS; postings are pages at lochsa.com/careers/<slug>
-      (e.g. civil-designer---land-development). Slug style suggests Wix; if the
-      probe finds 0 links, set render_js: true.
+      live `job-watch links`: /careers is server-rendered and links to category
+      pages (/career-category/civil, /structural, /surveying); postings are
+      lochsa.com/careers/<slug> pages. Lochsa also has a Boise office (208 area
+      code), so postings without a location show as [location unverified].
     options:
-      url: https://www.lochsa.com/careers
+      url: https://www.lochsa.com/career-category/civil
+      extra_urls:
+        - https://www.lochsa.com/career-category/structural
       link_regex: "lochsa\\.com/careers/[^/?#]+$"
-      render_js: false
+      # The index pages list no city. For postings that otherwise match, open
+      # the posting and look for these words ("...Las Vegas office only").
+      detail_location_keywords: [North Las Vegas, Las Vegas, Henderson, Boise, Idaho, Reno]
 
   - id: ca-group
     name: CA Group
@@ -306,6 +336,9 @@ employers:
     name: State of Nevada (incl. NDOT)
     category: public
     type: neogov
+    # Decided 2026-09-28: this site's robots.txt only admits named search
+    # engines; we read one public feed per week, so skip the check here.
+    respect_robots_txt: false
     careers_url: https://www.governmentjobs.com/careers/nv
     verified: >-
       search-index: State of Nevada moved from NVAPPS/NEATS to GovernmentJobs
@@ -317,6 +350,9 @@ employers:
     name: RTC of Southern Nevada
     category: public
     type: neogov
+    # Decided 2026-09-28: this site's robots.txt only admits named search
+    # engines; we read one public feed per week, so skip the check here.
+    respect_robots_txt: false
     careers_url: https://www.governmentjobs.com/careers/rtc
     verified: "search-index: job bulletins at governmentjobs.com/careers/rtc/jobs/..."
     options:
@@ -327,6 +363,9 @@ employers:
     name: Clark County
     category: public
     type: neogov
+    # Decided 2026-09-28: this site's robots.txt only admits named search
+    # engines; we read one public feed per week, so skip the check here.
+    respect_robots_txt: false
     careers_url: https://www.governmentjobs.com/careers/clarkcounty
     verified: "search-index: governmentjobs.com/careers/clarkcounty (e.g. assistant/associate engineer)"
     options:
@@ -337,6 +376,9 @@ employers:
     name: City of Las Vegas
     category: public
     type: neogov
+    # Decided 2026-09-28: this site's robots.txt only admits named search
+    # engines; we read one public feed per week, so skip the check here.
+    respect_robots_txt: false
     careers_url: https://www.governmentjobs.com/careers/lasvegas
     verified: "search-index: governmentjobs.com/careers/lasvegas (e.g. Engineering Associate)"
     options:
@@ -347,6 +389,9 @@ employers:
     name: City of Henderson
     category: public
     type: neogov
+    # Decided 2026-09-28: this site's robots.txt only admits named search
+    # engines; we read one public feed per week, so skip the check here.
+    respect_robots_txt: false
     careers_url: https://www.governmentjobs.com/careers/henderson
     verified: "search-index: governmentjobs.com/careers/henderson (e.g. Utility Services Engineer I)"
     options:
@@ -358,6 +403,8 @@ employers:
     name: USAJOBS (0810 Civil Engineering)
     category: federal
     type: usajobs
+    # Turn on once USAJOBS_API_KEY / USAJOBS_EMAIL are in .env.
+    enabled: false
     careers_url: https://www.usajobs.gov/search/results/?j=0810&l=Las%20Vegas%2C%20Nevada&r=50
     verified: "official API, https://developer.usajobs.gov/"
     options:

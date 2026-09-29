@@ -114,3 +114,84 @@ def test_sends_configured_user_agent():
     with _client(handler, user_agent="job-watch-test/1.0") as c:
         c.get("https://ex.com/x")
     assert seen["/x"] == "job-watch-test/1.0"
+
+
+def test_vague_locations_are_resolved(config, monkeypatch):
+    """'3 Locations' postings get their real locations looked up, then re-filtered."""
+    from job_watch.fetchers.workday import WorkdayFetcher
+
+    emp = Employer(id="wd", name="WD", category="national", type="workday",
+                   options={"host": "h", "tenant": "t", "site": "s"})
+    lv = Posting("wd", "WD", "Civil Engineer I", "3 Locations", "u1", "workday", extra={"path": "/a"})
+    elsewhere = Posting("wd", "WD", "Civil Engineer I", "2 Locations", "u2", "workday", extra={"path": "/b"})
+    lookups = {"/a": "Denver, CO / Las Vegas, NV", "/b": "Denver, CO / Austin, TX"}
+    monkeypatch.setattr(WorkdayFetcher, "resolve_location",
+                        lambda self, p: lookups[p.extra["path"]])
+    runner.resolve_unverified(emp, _client(lambda r: httpx.Response(404)), [lv, elsewhere], config)
+    assert lv.location == "Denver, CO / Las Vegas, NV"
+    assert elsewhere.location == "Denver, CO / Austin, TX"
+    from job_watch.filters import evaluate
+    assert evaluate(lv, config.filters).matched
+    assert not evaluate(elsewhere, config.filters).matched
+
+
+def test_same_posting_on_two_sites_shown_once(config, monkeypatch):
+    def fake_fetch(employer, http):
+        return [Posting(employer.id, "HNTB", "New Grad Civil Engineer I", "Las Vegas, NV",
+                        f"https://{employer.id}/1", "workday", external_id="R-1")]
+
+    monkeypatch.setattr(runner, "fetch_one", fake_fetch)
+    cfg = _cfg(config)
+    store = Store(":memory:")
+    report = runner.run(cfg, store, None, today=date(2026, 9, 28))
+    assert len(report.new) == 1 and len(report.duplicate_keys) == 1
+    runner.mark_delivered(store, report)
+    assert store.new_matches() == []  # the hidden duplicate was marked too
+
+
+def test_per_employer_robots_override():
+    def handler(request):
+        if request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nDisallow: /feed\n")
+        return httpx.Response(200, text="ok")
+
+    with _client(handler) as c:
+        with pytest.raises(RobotsDisallowed):
+            c.get("https://ex.com/feed")
+        with c.robots_policy(False):
+            assert c.get("https://ex.com/feed").text == "ok"
+        with pytest.raises(RobotsDisallowed):
+            c.get("https://ex.com/feed")
+
+
+@pytest.mark.parametrize("status,allowed", [(404, True), (403, True), (401, True), (503, False)])
+def test_robots_status_codes_follow_rfc9309(status, allowed):
+    def handler(request):
+        if request.url.path == "/robots.txt":
+            return httpx.Response(status)
+        return httpx.Response(200, text="ok")
+
+    with _client(handler) as c:
+        if allowed:
+            assert c.get("https://ex.com/jobs").text == "ok"
+        else:
+            with pytest.raises(RobotsDisallowed):
+                c.get("https://ex.com/jobs")
+
+
+def test_list_email_sends_open_postings(config, monkeypatch, tmp_path):
+    from job_watch import cli
+
+    db = tmp_path / "jobs.db"
+    store = Store(db)
+    p = Posting("clark-county", "Clark County", "Civil Engineer I", "Las Vegas, NV",
+                "https://x/1", "neogov", external_id="1")
+    store.sync_employer("clark-county", [(p, True, "", False)], date(2026, 9, 28))
+    store.close()
+
+    sent = {}
+    monkeypatch.setattr(cli, "send_digest", lambda subject, body: sent.update(s=subject, b=body))
+    rc = cli.main(["list", "--email", "--db", str(db)])
+    assert rc == 0
+    assert "1 open posting" in sent["s"]
+    assert "ALL OPEN POSTINGS (1)" in sent["b"] and "Civil Engineer I" in sent["b"]

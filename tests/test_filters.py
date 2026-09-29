@@ -45,6 +45,17 @@ def test_department_can_satisfy_discipline(config):
     assert not evaluate(posting("Analyst I", department="Finance"), config.filters).matched
 
 
+def test_civil_department_needs_professional_title(config):
+    # Seen live at Clark County: a Public Works trades job with "I/II" in it.
+    worker = posting("MAINTENANCE WORKER I/II - CDL (ROAD DIVISION)",
+                     "Clark County - Las Vegas", department="Public Works")
+    assert not evaluate(worker, config.filters).matched
+    clerk = posting("Office Specialist II", department="Public Works")
+    assert not evaluate(clerk, config.filters).matched
+    engineer = posting("Assistant/Associate Engineer", department="Public Works")
+    assert evaluate(engineer, config.filters).matched
+
+
 def test_overrides_skip_checks(config):
     p = posting("Civil Engineer (GS-7/9)", location="Nellis AFB, Nevada")
     assert not evaluate(p, config.filters).matched

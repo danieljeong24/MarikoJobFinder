@@ -29,6 +29,9 @@ DEFAULT_HEADERS = {
     "X-Requested-With": "XMLHttpRequest",
     "tz": "GMT-07:00",
     "tzname": "America/Los_Angeles",
+    # Some Taleo servers label responses as compressed but send a body zlib
+    # can't read ("incorrect header check"); ask for plain responses.
+    "Accept-Encoding": "identity",
 }
 
 
@@ -40,7 +43,10 @@ class TaleoFetcher(Fetcher):
         if self.options.get("portal"):
             return str(self.options["portal"])
         o = self.options
-        page = self.http.get(f"https://{o['host']}/careersection/{o['section']}/jobsearch.ftl?lang=en").text
+        page = self.http.get(
+            f"https://{o['host']}/careersection/{o['section']}/jobsearch.ftl?lang=en",
+            headers={"Accept-Encoding": "identity"},
+        ).text
         m = re.search(r"portal=(\d+)", page) or re.search(r"portal['\"]?\s*[:=]\s*['\"]?(\d+)", page)
         if not m:
             raise FetcherError("could not discover Taleo portal id; set options.portal")

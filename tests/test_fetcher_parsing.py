@@ -137,3 +137,66 @@ def test_html_selector_mode():
         ("Traffic Engineer I", "Henderson, NV", "https://ex.com/j/1"),
         ("Accountant", "Las Vegas, NV", "https://ex.com/j/2"),
     ]
+
+
+def test_workday_detail_location(load_fixture):
+    loc = WorkdayFetcher.parse_detail_location(load_fixture("workday_detail.json"))
+    assert loc == "Kansas City, MO / Las Vegas, NV / Denver, CO"
+
+
+def test_html_link_mode_reads_location_from_row(config):
+    # Shape of careers.jacobs.com (Avature) after rendering.
+    html = """
+    <article><h3><a href="/en_US/careers/JobDetail/Highway-Engineer/46004">Highway Engineer</a></h3>
+      <span>Las Vegas, Nevada, United States</span> <a href="/en_US/careers/ApplicationMethods?jobId=46004">Apply</a></article>
+    <article><h3><a href="/en_US/careers/JobDetail/Civil-Engineer-I/46010">Civil Engineer I</a></h3>
+      <span>Denver, CO</span><span>Remote</span></article>
+    <article><h3><a href="/en_US/careers/JobDetail/Junior-Civil-Engineer/46011">Junior Civil Engineer</a></h3></article>
+    """
+    emp = make_employer("html", url="https://careers.jacobs.com/en_US/careers/SearchJobs",
+                        link_regex="/careers/JobDetail/")
+    ps = HtmlFetcher(emp, None).parse(html, "https://careers.jacobs.com/en_US/careers/SearchJobs")
+    assert [(p.title, p.location) for p in ps] == [
+        ("Highway Engineer", "Las Vegas, Nevada"),
+        ("Civil Engineer I", "Denver, CO / Remote/Hybrid"),
+        ("Junior Civil Engineer", ""),
+    ]
+
+
+def test_html_detail_location_lookup():
+    class FakeHttp:
+        def get(self, url, **kw):
+            class R:
+                text = "<p>This position is located in the Las Vegas office only.</p>"
+            return R()
+
+    emp = make_employer("html", url="https://www.lochsa.com/career-category/civil",
+                        link_regex="/careers/", detail_location_keywords=["Las Vegas", "Boise"])
+    f = HtmlFetcher(emp, FakeHttp())
+    p = f.make_posting(title="Civil Designer", location="", url="https://www.lochsa.com/careers/x")
+    assert f.resolve_location(p) == "Las Vegas"
+
+
+def test_html_paging(monkeypatch):
+    pages = {
+        "0": '<a href="/j/1">Civil Engineer I</a><a href="/j/2">Traffic EIT</a>',
+        "2": '<a href="/j/3">Junior Civil Engineer</a>',
+        "4": '<a href="/j/3">Junior Civil Engineer</a>',  # repeat -> stop
+    }
+    requested = []
+
+    class FakeHttp:
+        def get(self, url, **kw):
+            requested.append(url)
+            offset = url.split("jobOffset=")[1]
+
+            class R:
+                text = pages.get(offset, "")
+            return R()
+
+    emp = make_employer("html", url="https://ex.com/SearchJobs?jobRecordsPerPage=2",
+                        link_regex="/j/\\d+", page_param="jobOffset", page_step=2)
+    ps = HtmlFetcher(emp, FakeHttp()).fetch()
+    assert [p.title for p in ps] == ["Civil Engineer I", "Traffic EIT", "Junior Civil Engineer"]
+    assert len(requested) == 3
+    assert "jobRecordsPerPage=2" in requested[0]

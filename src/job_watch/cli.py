@@ -20,7 +20,7 @@ from .fetchers.base import ConfigError
 from .fetchers.browser import playwright_available
 from .filters import evaluate
 from .http import PoliteClient
-from .runner import mark_delivered, run, select_employers
+from .runner import fetch_one, mark_delivered, resolve_unverified, run, select_employers
 from .store import Store
 
 
@@ -87,7 +87,7 @@ def cmd_check_config(args) -> int:
             ok = False
             note = f"  !! {exc}"
         if needs_browser(e):
-            note += "  (needs Playwright)" + ("" if have_pw else " — NOT INSTALLED")
+            note += "  (needs Playwright)" + ("" if have_pw else " - NOT INSTALLED")
         print(f"  [{status}] {e.id:<24} {e.type:<16} {e.category:<9}{note}")
     if any(e.type == "usajobs" and e.enabled for e in cfg.employers):
         if not (os.environ.get("USAJOBS_API_KEY") and os.environ.get("USAJOBS_EMAIL")):
@@ -106,7 +106,8 @@ def cmd_probe(args) -> int:
         for e in employers:
             print(f"\n=== {e.name} [{e.id}] ({e.type}) ===")
             try:
-                postings = get_fetcher(e, http).fetch()
+                postings = fetch_one(e, http)
+                resolve_unverified(e, http, postings, cfg)
             except Exception as exc:
                 print(f"  FAILED: {type(exc).__name__}: {exc}")
                 rc = 1
@@ -116,7 +117,7 @@ def cmd_probe(args) -> int:
                 r = evaluate(p, cfg.filters, e.filters)
                 matched += r.matched
                 if r.matched or args.verbose:
-                    mark = "✓" if r.matched else "·"
+                    mark = "+" if r.matched else "-"
                     print(f"  {mark} {p.title} | {p.location}")
                     if args.verbose:
                         print(f"      {r.summary}")
@@ -125,11 +126,54 @@ def cmd_probe(args) -> int:
     return rc
 
 
+def cmd_links(args) -> int:
+    """Print every link on a page, to help write link_regex / selectors."""
+    from urllib.parse import urljoin
+
+    from bs4 import BeautifulSoup
+
+    from .fetchers import browser
+
+    cfg = _load(args)
+    with PoliteClient(cfg.settings) as http:
+        if args.render_js:
+            html = browser.render(http, args.url)
+        else:
+            html = http.get(args.url).text
+    soup = BeautifulSoup(html, "html.parser")
+    links = soup.find_all("a", href=True)
+    for a in links:
+        text = " ".join(a.get_text(" ").split())[:70]
+        print(f"{text:<70}  {urljoin(args.url, a['href'])}")
+    print(f"\n{len(links)} link(s); page is {len(html)} characters")
+    if not links:
+        print("No links: the page probably builds its content with JavaScript. "
+              "Try again with --render-js (needs Playwright).")
+    return 0
+
+
 def cmd_list(args) -> int:
     cfg = _load(args)
     store = Store(cfg.settings.db_file)
     rows = store.list_postings(status=args.status, matched_only=not args.everything)
-    if args.json:
+    if args.email:
+        from datetime import date
+
+        from .runner import RunReport
+
+        report = RunReport(run_date=date.today().isoformat(), new=rows,
+                           categories={e.id: e.category for e in cfg.employers})
+        heading = {"open": "ALL OPEN POSTINGS", "closed": "CLOSED POSTINGS"}.get(args.status, "ALL POSTINGS")
+        text = render_text(report, heading=heading)
+        print(text)
+        try:
+            send_digest(f"job-watch: {len(rows)} open posting(s) - {report.run_date}", text)
+            print("Emailed.", file=sys.stderr)
+        except (EmailConfigError, OSError) as exc:
+            print(f"Email failed: {exc}", file=sys.stderr)
+            store.close()
+            return 2
+    elif args.json:
         print(json.dumps([r.to_dict() for r in rows], indent=2))
     else:
         for r in rows:
@@ -177,16 +221,29 @@ def build_parser() -> argparse.ArgumentParser:
     pr.add_argument("--delay", type=float, help="override request_delay_seconds")
     pr.set_defaults(func=cmd_probe)
 
+    lk = sub.add_parser("links", help="print every link on a page (for writing html configs)")
+    common(lk)
+    lk.add_argument("url")
+    lk.add_argument("--render-js", action="store_true", help="render with Playwright first")
+    lk.set_defaults(func=cmd_links)
+
     ls = sub.add_parser("list", help="list postings stored in the database")
     common(ls)
     ls.add_argument("--status", choices=["open", "closed", "all"], default="open")
     ls.add_argument("--everything", action="store_true", help="include non-matching postings")
     ls.add_argument("--json", action="store_true")
+    ls.add_argument("--email", action="store_true",
+                    help="email the list (e.g. to send the full current list once)")
     ls.set_defaults(func=cmd_list)
     return p
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows pipes/redirects default to a legacy code page that can't encode
+    # the digest's bullets and check marks; force UTF-8 everywhere.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     args = build_parser().parse_args(argv)
     logging.basicConfig(
         level=logging.INFO if args.verbose_log else logging.WARNING,

@@ -47,6 +47,12 @@ class Fetcher(ABC):
     def fetch(self) -> list[Posting]:
         """Return every current posting this employer lists (pre-filter)."""
 
+    def resolve_location(self, posting: Posting) -> str | None:
+        """Optionally look up the real location of a posting whose list entry
+        only says something vague like "3 Locations". Return None if unknown.
+        The runner calls this only for postings that otherwise match."""
+        return None
+
     def make_posting(self, **kwargs: Any) -> Posting:
         return Posting(
             employer_id=self.employer.id,
