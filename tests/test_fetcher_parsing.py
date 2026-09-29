@@ -163,6 +163,20 @@ def test_html_link_mode_reads_location_from_row(config):
     ]
 
 
+def test_html_detail_location_lookup():
+    class FakeHttp:
+        def get(self, url, **kw):
+            class R:
+                text = "<p>This position is located in the Las Vegas office only.</p>"
+            return R()
+
+    emp = make_employer("html", url="https://www.lochsa.com/career-category/civil",
+                        link_regex="/careers/", detail_location_keywords=["Las Vegas", "Boise"])
+    f = HtmlFetcher(emp, FakeHttp())
+    p = f.make_posting(title="Civil Designer", location="", url="https://www.lochsa.com/careers/x")
+    assert f.resolve_location(p) == "Las Vegas"
+
+
 def test_html_paging(monkeypatch):
     pages = {
         "0": '<a href="/j/1">Civil Engineer I</a><a href="/j/2">Traffic EIT</a>',

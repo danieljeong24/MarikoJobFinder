@@ -64,10 +64,18 @@ filters:
       - co-op
       - technician
       - inspector
+      - maintenance
+      - worker
+      - CDL
+      - laborer
+      - operator
+      - mechanic
+      - clerk
 
-  # Civil/transportation gate. Passes if an `include` term is in the title or
-  # department; otherwise passes if a `generic` term (plain "engineer") is in
-  # the title and no `exclude` term is.
+  # Civil/transportation gate. Passes if an `include` term is in the title; or
+  # in the department AND the title has a `role_words` term; otherwise passes
+  # if a `generic` term (plain "engineer") is in the title and no `exclude`
+  # term is.
   discipline:
     include:
       - civil
@@ -110,6 +118,7 @@ filters:
       - nuclear
       - process
       - biomedical
+    role_words: [engineer, engineering, analyst, designer, EIT]
     match_fields: [title, department]
 
   location:
@@ -227,7 +236,8 @@ employers:
     options:
       host: stantec.taleo.net
       section: ex1
-      keyword: Las Vegas
+      # A "Las Vegas" keyword search returned 0 in the live probe, so fetch
+      # everything and filter locally.
 
   - id: aecom
     name: AECOM
@@ -305,6 +315,9 @@ employers:
       extra_urls:
         - https://www.lochsa.com/career-category/structural
       link_regex: "lochsa\\.com/careers/[^/?#]+$"
+      # The index pages list no city. For postings that otherwise match, open
+      # the posting and look for these words ("...Las Vegas office only").
+      detail_location_keywords: [North Las Vegas, Las Vegas, Henderson, Boise, Idaho, Reno]
 
   - id: ca-group
     name: CA Group

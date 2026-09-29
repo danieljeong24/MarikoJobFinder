@@ -21,6 +21,10 @@ Common options:
   wait_selector:    with render_js, wait for this selector before reading
   default_location: used when no location selector / no location text
   exclude_titles:   list of link texts to ignore (nav links like "Apply")
+  detail_location_keywords:
+                    for postings that match but have no location, open the
+                    posting page and use whichever of these words appear
+                    (e.g. [Las Vegas, Boise]) as its location
 
 Paging (optional), for lists split across pages via a query parameter:
   page_param:  e.g. "jobOffset"
@@ -37,7 +41,7 @@ from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 
 from bs4 import BeautifulSoup
 
-from ..filters import US_STATES
+from ..filters import US_STATES, find_keywords
 from ..models import Posting
 from . import browser
 from .base import ConfigError, Fetcher, clean
@@ -74,6 +78,19 @@ class HtmlFetcher(Fetcher):
                     seen.add(p.url)
                     postings.append(p)
         return postings
+
+    def resolve_location(self, posting: Posting) -> str | None:
+        """Open the posting page and look for `detail_location_keywords`."""
+        keywords = self.options.get("detail_location_keywords")
+        if not keywords or not posting.url:
+            return None
+        if self.options.get("render_js"):
+            html = browser.render(self.http, posting.url)
+        else:
+            html = self.http.get(posting.url).text
+        text = clean(BeautifulSoup(html, "html.parser").get_text(" "))
+        found = find_keywords(text, keywords)
+        return " / ".join(found) or None
 
     def parse(self, html: str, base_url: str) -> list[Posting]:
         soup = BeautifulSoup(html, "html.parser")

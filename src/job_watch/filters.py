@@ -80,14 +80,19 @@ def check_level(title: str, filters: Filters, overrides: EmployerFilterOverrides
 
 def check_discipline(posting: Posting, filters: Filters) -> tuple[bool, str]:
     d = filters.discipline
-    text = " | ".join(
-        getattr(posting, f) for f in d.match_fields if getattr(posting, f, "")
-    )
-    # A civil/transportation term wins over an exclusion ("Civil Engineer -
-    # Data Center" is still civil); exclusions only veto the generic fallback.
-    included = find_keywords(text, d.include)
+    # A civil/transportation term in the title wins over an exclusion ("Civil
+    # Engineer - Data Center" is still civil); exclusions only veto the
+    # generic fallback.
+    included = find_keywords(posting.title, d.include)
     if included:
         return True, f"discipline: matched {included}"
+    # A civil department ("Public Works") only counts when the title is a
+    # professional role, so "Maintenance Worker I/II" in Public Works fails.
+    if "department" in d.match_fields and posting.department:
+        dept = find_keywords(posting.department, d.include)
+        role = find_keywords(posting.title, d.role_words)
+        if dept and role:
+            return True, f"discipline: department {dept} + role {role}"
     excluded = find_keywords(posting.title, d.exclude)
     if excluded:
         return False, f"discipline: excluded by {excluded}"
