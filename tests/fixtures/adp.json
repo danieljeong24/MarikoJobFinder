@@ -1,0 +1,77 @@
+{
+ "jobRequisitions": [
+  {
+   "itemID": "9201865511120_1",
+   "requisitionTitle": "Project Manager- Water Resources ",
+   "requisitionLocations": [
+    {
+     "address": {
+      "cityName": "San Diego",
+      "countrySubdivisionLevel1": {
+       "codeValue": "CA"
+      },
+      "postalCode": "92110"
+     },
+     "aliasNames": [],
+     "nameCode": {
+      "shortName": " San Diego, CA, US"
+     }
+    }
+   ],
+   "customFieldGroup": {
+    "dateFields": [
+     {
+      "dateValue": "2026-11-06T14:40Z",
+      "nameCode": {
+       "codeValue": "PostingDate"
+      }
+     },
+     {
+      "dateValue": "2026-11-10T22:54Z",
+      "nameCode": {
+       "codeValue": "CurrentServerDateTime"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "itemID": "9201865500017_1",
+   "requisitionTitle": "Water Resources Designer",
+   "requisitionLocations": [
+    {
+     "address": {
+      "cityName": "San Diego",
+      "countrySubdivisionLevel1": {
+       "codeValue": "CA"
+      },
+      "postalCode": "92110"
+     },
+     "aliasNames": [],
+     "nameCode": {
+      "shortName": " San Diego, CA, US"
+     }
+    }
+   ],
+   "customFieldGroup": {
+    "dateFields": [
+     {
+      "dateValue": "2026-11-06T14:25Z",
+      "nameCode": {
+       "codeValue": "PostingDate"
+      }
+     },
+     {
+      "dateValue": "2026-11-10T22:54Z",
+      "nameCode": {
+       "codeValue": "CurrentServerDateTime"
+      }
+     }
+    ]
+   }
+  }
+ ],
+ "meta": {
+  "totalNumber": 2
+ }
+}

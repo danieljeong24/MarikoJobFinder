@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ..config import Employer
 from ..http import PoliteClient
+from .adp import AdpFetcher
 from .base import ConfigError, Fetcher, FetcherError, FetcherUnavailable
 from .greenhouse import GreenhouseFetcher
 from .html import HtmlFetcher
@@ -11,7 +12,9 @@ from .icims import IcimsFetcher
 from .lever import LeverFetcher
 from .neogov import NeogovFetcher
 from .oracle_hcm import OracleHcmFetcher
+from .pinpoint import PinpointFetcher
 from .rss import RssFetcher
+from .sitemap import SitemapFetcher
 from .smartrecruiters import SmartRecruitersFetcher
 from .taleo import TaleoFetcher
 from .ultipro import UltiproFetcher
@@ -33,6 +36,9 @@ REGISTRY: dict[str, type[Fetcher]] = {
         OracleHcmFetcher,
         SmartRecruitersFetcher,
         UltiproFetcher,
+        AdpFetcher,
+        PinpointFetcher,
+        SitemapFetcher,
     )
 }
 
