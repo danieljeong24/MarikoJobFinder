@@ -181,6 +181,14 @@ starting list. After that you only see changes.
 | imeg | IMEG | Workday (`wd1.myworkdaysite.com`, tenant `imeg`, site `Imeg_Careers`) | `workday` |
 | atkinsrealis | AtkinsRéalis | Workday (`slihrms.wd3`, site `Careers`) | `workday` |
 | horrocks | Horrocks | UKG Pro / UltiPro (`recruiting2.ultipro.com/HOR1015HOCK`). **Disabled**: robots.txt forbids its data endpoint | `ultipro` |
+| kiewit | Kiewit | SAP SuccessFactors career site (`kiewitcareers.kiewit.com`), Las Vegas search page | `html` |
+| langan | Langan | Greenhouse (`langanengineeringandenvironmentalservicesllc`) | `greenhouse` |
+| terracon | Terracon | Radancy career site; search is robots-blocked, so jobs come from `sitemap.xml` | `sitemap` |
+| atwell | Atwell | Greenhouse (`atwellgroup`) | `greenhouse` |
+| wood-rodgers | Wood Rodgers | Pinpoint (`woodrodgers.pinpointhq.com`) | `pinpoint` |
+| dhi-engineering | DHI Engineering (D.R. Horton) | Oracle Taleo (`drhorton.taleo.net`, section `2`) | `taleo` |
+| rick-engineering | Rick Engineering | ADP Workforce Now (cid `5388ae22-…`) | `adp` |
+| geotek | GeoTek | Greenhouse (`geotekoperationslimited`) | `greenhouse` |
 | gcw | GCW | Betterteam (`gcwengineering.betterteam.com`) | `html` |
 | lochsa | Lochsa Engineering | Own site, pages under `/careers/` | `html` |
 | ca-group | CA Group | Own site (they usually ask for mailed resumes) | `html` |
@@ -199,8 +207,8 @@ postings. The next sections explain how.
 
 Fetcher types available: `workday`, `greenhouse`, `lever`, `icims`,
 `usajobs`, `rss`, `html`, `neogov`, `taleo`, `oracle_hcm`,
-`smartrecruiters`, `ultipro`. None of the current employers uses
-Greenhouse or Lever, but both fetchers are there for when one does.
+`smartrecruiters`, `ultipro`, `adp`, `pinpoint`, `sitemap`. None of the
+current employers uses Lever, but that fetcher is there for when one does.
 
 ## Adding a new employer
 
@@ -240,6 +248,9 @@ Options for each type (full docs are at the top of each module in
 | `oracle_hcm` | `host`, `site`, `keyword`, `location`, `radius` |
 | `smartrecruiters` | `company`, `q`, `city`, `country` |
 | `ultipro` | `host`, `tenant`, `board_id`, `query` |
+| `adp` | `cid`, `cc_id` |
+| `pinpoint` | `company` |
+| `sitemap` | `url`, `link_regex` (named groups `city`, `title`), `state` |
 | `neogov` | `agency`, `host`, `default_location` |
 | `usajobs` | `job_category_code`, `location_name`, `radius_miles`, `keyword`, `max_low_grade` |
 | `rss` | `url`, `location_field`, `location_regex`, `default_location` |
@@ -266,6 +277,8 @@ Click "Apply" or open any job, then look at the URL:
 | `{x}.oraclecloud.com/hcmUI/CandidateExperience/en/sites/{site}` | Oracle Recruiting | `oracle_hcm` |
 | `jobs.smartrecruiters.com/{company}/...` | SmartRecruiters | `smartrecruiters` |
 | `recruiting*.ultipro.com/{tenant}/JobBoard/{guid}` | UKG / UltiPro | `ultipro` |
+| `workforcenow.adp.com/...recruitment.html?cid={cid}` | ADP Workforce Now | `adp` |
+| `{company}.pinpointhq.com` | Pinpoint | `pinpoint` |
 | `governmentjobs.com/careers/{agency}` | NEOGOV | `neogov` |
 
 ### Finding a site's hidden JSON endpoint (browser network tab)

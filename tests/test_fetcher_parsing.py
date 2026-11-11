@@ -209,3 +209,47 @@ def test_workday_myworkdaysite_job_urls(load_fixture):
     ps = f.parse(load_fixture("workday.json"))
     assert ps[0].url == ("https://wd1.myworkdaysite.com/recruiting/imeg/Imeg_Careers"
                          "/job/Las-Vegas-NV/Transportation-Engineer-I_R-30101")
+
+
+# The next three fixtures are trimmed real responses recorded on 2026-11-11.
+
+def test_adp(load_fixture):
+    from job_watch.fetchers.adp import AdpFetcher
+
+    f = AdpFetcher(make_employer("adp", cid="5388ae22-6327-499a-a62d-abed736e9939"), None)
+    ps = f.parse(load_fixture("adp.json"))
+    assert ps[0].title == "Project Manager- Water Resources"
+    assert ps[0].location == "San Diego, CA"
+    assert ps[0].external_id == "9201865511120_1"
+    assert "jobId=9201865511120_1" in ps[0].url and "cid=5388ae22" in ps[0].url
+    assert ps[0].posted_date and ps[0].posted_date.startswith("2026-")
+
+
+def test_pinpoint(load_fixture, config):
+    from job_watch.fetchers.pinpoint import PinpointFetcher
+
+    f = PinpointFetcher(make_employer("pinpoint", company="woodrodgers"), None)
+    ps = f.parse(load_fixture("pinpoint.json"))
+    assert [(p.title, p.location) for p in ps][:2] == [
+        ("Assistant Engineer", "Denver, CO"), ("Engineer", "Denver, CO")]
+    assert ps[0].url.startswith("https://woodrodgers.pinpointhq.com/en/postings/")
+    assert matched_titles(ps, config) == []  # right roles, wrong city
+
+
+def test_sitemap(load_fixture, config):
+    from job_watch.fetchers.sitemap import SitemapFetcher
+
+    emp = make_employer("sitemap", url="https://careers.terracon.com/sitemap.xml",
+                        link_regex="/job/(?P<city>las-vegas|henderson)/(?P<title>[^/]+)/",
+                        state="NV")
+    emp.filters.extra_level_include = ["staff engineer"]
+    ps = SitemapFetcher(emp, None).parse(load_fixture("sitemap.xml"))
+    assert [(p.title, p.location) for p in ps] == [
+        ("Project Manager", "Las Vegas, NV"), ("Staff Engineer", "Las Vegas, NV")]
+    assert matched_titles(ps, config, emp) == ["Staff Engineer"]
+
+
+def test_sitemap_title_keeps_roman_numerals():
+    from job_watch.fetchers.sitemap import _words
+
+    assert _words("engineering-technician-ii") == "Engineering Technician II"

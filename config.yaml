@@ -300,6 +300,83 @@ employers:
       job_url_base: https://wd1.myworkdaysite.com/recruiting/imeg/Imeg_Careers
       search_text: Las Vegas
 
+  - id: kiewit
+    name: Kiewit
+    category: national
+    type: html
+    careers_url: https://kiewitcareers.kiewit.com/
+    verified: >-
+      live (2026-11-11): kiewit.com/careers links to kiewitcareers.kiewit.com (SAP
+      SuccessFactors career site). /search/ is server-rendered and allowed by
+      robots.txt (its RSS under /services/ is not); "Las Vegas, NV" returned 16 jobs.
+    options:
+      url: https://kiewitcareers.kiewit.com/search/?q=&locationsearch=Las%20Vegas%2C%20NV
+      link_regex: "kiewitcareers\\.kiewit\\.com/job/[^/]+/\\d+/?$"
+      page_param: startrow
+      page_step: 25
+      max_pages: 4
+    filters:
+      # Kiewit's entry-level engineering title.
+      extra_level_include: [field engineer]
+
+  - id: langan
+    name: Langan
+    category: national
+    type: greenhouse
+    careers_url: https://www.langan.com/langan-job-board
+    verified: "live (2026-11-11): langan.com/langan-job-board embeds Greenhouse board langanengineeringandenvironmentalservicesllc (582 jobs, 4 in Las Vegas)"
+    options:
+      board_token: langanengineeringandenvironmentalservicesllc
+
+  - id: terracon
+    name: Terracon
+    category: national
+    type: sitemap
+    careers_url: https://careers.terracon.com/
+    verified: >-
+      live (2026-11-11): careers.terracon.com robots.txt disallows /search-jobs/, so
+      jobs are read from sitemap.xml, whose job URLs carry the city and title.
+    options:
+      url: https://careers.terracon.com/sitemap.xml
+      link_regex: "/job/(?P<city>las-vegas|north-las-vegas|henderson)/(?P<title>[^/]+)/"
+      state: NV
+    filters:
+      # Terracon's and GeoTek's entry-level titles.
+      extra_level_include: [staff engineer, staff professional]
+
+  - id: atwell
+    name: Atwell
+    category: national
+    type: greenhouse
+    careers_url: https://job-boards.greenhouse.io/atwellgroup
+    verified: "search-index + live API (2026-11-11): Greenhouse board atwellgroup, 206 jobs"
+    options:
+      board_token: atwellgroup
+
+  - id: wood-rodgers
+    name: Wood Rodgers
+    category: national
+    type: pinpoint
+    careers_url: https://woodrodgers.pinpointhq.com/
+    verified: >-
+      live (2026-11-11): the old boards.greenhouse.io/woodrodgers link on their careers
+      page 404s; postings moved to woodrodgers.pinpointhq.com (postings.json, 27 jobs).
+    options:
+      company: woodrodgers
+
+  - id: dhi-engineering
+    name: DHI Engineering (D.R. Horton)
+    category: national
+    type: taleo
+    careers_url: https://drhorton.taleo.net/careersection/2/jobsearch.ftl?lang=en
+    verified: >-
+      live (2026-11-11): drhorton.com/careers links to Taleo sections 1 and 2; section 2
+      lists DHI Engineering postings (e.g. "Civil Engineer-E.I.T. - DHI Engineering").
+    options:
+      host: drhorton.taleo.net
+      section: "2"
+      keyword: Engineer
+
   # ------------------------------------------------------------------- local
   - id: gcw
     name: GCW Engineers & Surveyors
@@ -346,6 +423,28 @@ employers:
     options:
       url: https://www.c-agroup.com/careers
       link_regex: "c-agroup\\.com/careers/[^/?#]+"
+
+  - id: rick-engineering
+    name: Rick Engineering
+    category: national
+    type: adp
+    careers_url: https://rickengineering.com/careers/job-openings/
+    verified: >-
+      live (2026-11-11): rickengineering.com job openings page loads ADP Workforce Now
+      (cid 5388ae22-...); the public job-requisitions API returned 34 jobs, incl. Las Vegas office.
+    options:
+      cid: 5388ae22-6327-499a-a62d-abed736e9939
+
+  - id: geotek
+    name: GeoTek
+    category: local
+    type: greenhouse
+    careers_url: https://www.geotekusa.com/careers
+    verified: "live (2026-11-11): geotekusa.com/careers uses Greenhouse board geotekoperationslimited (27 jobs, incl. Civil Engineering Staff Professional - Las Vegas)"
+    options:
+      board_token: geotekoperationslimited
+    filters:
+      extra_level_include: [staff professional]
 
   # ------------------------------------------------------------------ public
   - id: nv-state
