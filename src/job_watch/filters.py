@@ -109,11 +109,18 @@ def check_location(location: str, filters: Filters) -> tuple[bool, str, bool, bo
 
     cities = find_keywords(text, loc.include)
     if cities:
-        states = _state_tokens(text)
         wanted = {s.upper() if len(s) == 2 else _code_for(s) for s in loc.require_state}
-        if not loc.require_state or not states or states & wanted:
-            return True, f"location: matched {cities}", False, False
-        return False, f"location: {cities} but state is {sorted(states)}", False, False
+        # Check each location of a multi-location posting on its own, so
+        # "Idaho Falls, ID / Las Vegas / Sacramento, CA" counts as Las Vegas.
+        rejected: set[str] = set()
+        for part in text.split(" / "):
+            if not find_keywords(part, loc.include):
+                continue
+            states = _state_tokens(part)
+            if not loc.require_state or not states or states & wanted:
+                return True, f"location: matched {cities}", False, False
+            rejected |= states
+        return False, f"location: {cities} but state is {sorted(rejected)}", False, False
 
     if loc.remote_ok:
         remote = find_keywords(text, loc.remote_keywords)

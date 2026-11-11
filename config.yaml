@@ -284,6 +284,22 @@ employers:
       tenant: HOR1015HOCK
       board_id: 0deeffac-9d40-443a-9999-b091c384d090
 
+  - id: imeg
+    name: IMEG
+    category: national
+    type: workday
+    careers_url: https://wd1.myworkdaysite.com/recruiting/imeg/Imeg_Careers
+    verified: >-
+      live: imegcorp.com/careers "Job Opportunities" links to this Workday site;
+      POST /wday/cxs/imeg/Imeg_Careers/jobs with "Las Vegas" returned 11 postings
+      (2026-11-11). Las Vegas office has a survey/transportation/municipal civil group.
+    options:
+      host: wd1.myworkdaysite.com
+      tenant: imeg
+      site: Imeg_Careers
+      job_url_base: https://wd1.myworkdaysite.com/recruiting/imeg/Imeg_Careers
+      search_text: Las Vegas
+
   # ------------------------------------------------------------------- local
   - id: gcw
     name: GCW Engineers & Surveyors

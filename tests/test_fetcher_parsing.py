@@ -200,3 +200,12 @@ def test_html_paging(monkeypatch):
     assert [p.title for p in ps] == ["Civil Engineer I", "Traffic EIT", "Junior Civil Engineer"]
     assert len(requested) == 3
     assert "jobRecordsPerPage=2" in requested[0]
+
+
+def test_workday_myworkdaysite_job_urls(load_fixture):
+    f = WorkdayFetcher(make_employer(
+        "workday", host="wd1.myworkdaysite.com", tenant="imeg", site="Imeg_Careers",
+        job_url_base="https://wd1.myworkdaysite.com/recruiting/imeg/Imeg_Careers"), None)
+    ps = f.parse(load_fixture("workday.json"))
+    assert ps[0].url == ("https://wd1.myworkdaysite.com/recruiting/imeg/Imeg_Careers"
+                         "/job/Las-Vegas-NV/Transportation-Engineer-I_R-30101")
