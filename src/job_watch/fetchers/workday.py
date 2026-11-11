@@ -9,6 +9,9 @@ options:
   site:        e.g. HNTB_Careers
   search_text: optional server-side keyword search (e.g. "Las Vegas")
   applied_facets: optional dict copied from the browser's request payload
+  job_url_base: optional; where job links start, for sites whose public
+               URL isn't https://{host}/{site} (e.g. myworkdaysite.com
+               tenants use https://{host}/recruiting/{tenant}/{site})
 
 Postings listed as "N Locations" are resolved through the job-detail
 endpoint (GET .../wday/cxs/{tenant}/{site}{externalPath}), but only for
@@ -30,6 +33,11 @@ class WorkdayFetcher(Fetcher):
     def api_url(self) -> str:
         o = self.options
         return f"https://{o['host']}/wday/cxs/{o['tenant']}/{o['site']}/jobs"
+
+    @property
+    def job_url_base(self) -> str:
+        o = self.options
+        return (o.get("job_url_base") or f"https://{o['host']}/{o['site']}").rstrip("/")
 
     def fetch(self) -> list[Posting]:
         postings: list[Posting] = []
@@ -65,7 +73,7 @@ class WorkdayFetcher(Fetcher):
                 self.make_posting(
                     title=clean(job.get("title")),
                     location=clean(job.get("locationsText")),
-                    url=f"https://{o['host']}/{o['site']}{path}" if path else "",
+                    url=f"{self.job_url_base}{path}" if path else "",
                     external_id=clean(bullets[0]) if bullets else (path or None),
                     posted_date=clean(job.get("postedOn")) or None,
                     extra={"path": path},

@@ -206,5 +206,17 @@
   "title": "New Grad Civil Engineer I - Aviation Group",
   "location": "Las Vegas, NV (Via Austi Parkway)",
   "expect": true
+ },
+ {
+  "title": "Civil Engineering New Graduate",
+  "location": "Idaho Falls, ID / Las Vegas | Rancho Drive / Sacramento, CA",
+  "expect": true,
+  "why": "one of several locations is Las Vegas"
+ },
+ {
+  "title": "Civil Engineering New Graduate",
+  "location": "Idaho Falls, ID / Henderson, KY",
+  "expect": false,
+  "why": "Henderson, KY is not Henderson, NV"
  }
 ]

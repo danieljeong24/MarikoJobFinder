@@ -178,6 +178,7 @@ starting list. After that you only see changes.
 | jacobs | Jacobs | Avature (`careers.jacobs.com`), rendered with Playwright, Las Vegas keyword search | `html` + `render_js` |
 | stantec | Stantec | Oracle Taleo (`stantec.taleo.net`, portal id auto-discovered) | `taleo` |
 | aecom | AECOM | SmartRecruiters (`AECOM2`) | `smartrecruiters` |
+| imeg | IMEG | Workday (`wd1.myworkdaysite.com`, tenant `imeg`, site `Imeg_Careers`) | `workday` |
 | atkinsrealis | AtkinsRéalis | Workday (`slihrms.wd3`, site `Careers`) | `workday` |
 | horrocks | Horrocks | UKG Pro / UltiPro (`recruiting2.ultipro.com/HOR1015HOCK`). **Disabled**: robots.txt forbids its data endpoint | `ultipro` |
 | gcw | GCW | Betterteam (`gcwengineering.betterteam.com`) | `html` |
@@ -231,7 +232,7 @@ Options for each type (full docs are at the top of each module in
 
 | type | options |
 |---|---|
-| `workday` | `host`, `tenant`, `site`, `search_text`, `applied_facets` |
+| `workday` | `host`, `tenant`, `site`, `search_text`, `applied_facets`, `job_url_base` |
 | `greenhouse` | `board_token` |
 | `lever` | `company` |
 | `icims` | `host`, `search_keyword`, `search_location`, `render_js` |
