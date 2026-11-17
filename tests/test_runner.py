@@ -195,3 +195,18 @@ def test_list_email_sends_open_postings(config, monkeypatch, tmp_path):
     assert rc == 0
     assert "1 open posting" in sent["s"]
     assert "ALL OPEN POSTINGS (1)" in sent["b"] and "Civil Engineer I" in sent["b"]
+
+
+def test_honours_robots_crawl_delay():
+    def handler(request):
+        if request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nAllow: /\nCrawl-delay: 5\n")
+        return httpx.Response(200, text="ok")
+
+    s = Settings(request_delay_seconds=2, backoff_base_seconds=0)
+    c = PoliteClient(s, transport=httpx.MockTransport(handler))
+    waits = []
+    c._sleep = waits.append
+    c.get("https://ex.com/a")
+    c.get("https://ex.com/b")
+    assert waits and max(waits) > 4  # waited for the site's 5s, not our 2s

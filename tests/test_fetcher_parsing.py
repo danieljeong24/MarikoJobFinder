@@ -253,3 +253,29 @@ def test_sitemap_title_keeps_roman_numerals():
     from job_watch.fetchers.sitemap import _words
 
     assert _words("engineering-technician-ii") == "Engineering Technician II"
+
+
+def test_html_key_by_title_survives_url_change():
+    # Betterteam (GCW) reposted the same job under a new URL suffix.
+    week1 = '<a href="/land-development-engineer-in-training-ii-3">Land Development Engineer in Training II</a>'
+    week2 = '<a href="/land-development-engineer-in-training-ii-4">Land Development Engineer in Training II</a>'
+    base = "https://gcwengineering.betterteam.com/"
+    rx = r"^https://gcwengineering\.betterteam\.com/[a-z0-9-]+/?$"
+    keyed = HtmlFetcher(make_employer("html", url=base, link_regex=rx, key_by_title=True), None)
+    assert keyed.parse(week1, base)[0].key == keyed.parse(week2, base)[0].key
+    by_url = HtmlFetcher(make_employer("html", url=base, link_regex=rx), None)
+    assert by_url.parse(week1, base)[0].key != by_url.parse(week2, base)[0].key
+
+
+def test_jibe(load_fixture, config):
+    # Trimmed real response from careers.kimley-horn.com, 2026-11-17.
+    from job_watch.fetchers.jibe import JibeFetcher
+
+    f = JibeFetcher(make_employer("jibe", host="careers.kimley-horn.com"), None)
+    ps = f.parse(load_fixture("jibe.json"))
+    assert ps[0].title == "Civil Engineering Analyst"
+    assert ps[0].location == "Las Vegas, Nevada"
+    assert ps[0].url == "https://careers.kimley-horn.com/jobs/24993?lang=en-us"
+    assert ps[0].external_id == "24993"
+    assert ps[0].posted_date == "2026-08-06"
+    assert "Civil Engineering Analyst" in matched_titles(ps, config)

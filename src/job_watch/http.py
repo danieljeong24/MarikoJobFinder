@@ -102,13 +102,28 @@ class PoliteClient:
         return base + random.uniform(0, base / 4)
 
     def _throttle(self, url: str) -> None:
-        host = urlsplit(url).netloc
+        parts = urlsplit(url)
+        host = parts.netloc
         last = self._last_request.get(host)
         if last is not None:
-            wait = self.settings.request_delay_seconds - (time.monotonic() - last)
+            wait = self._delay_for(f"{parts.scheme}://{host}") - (time.monotonic() - last)
             if wait > 0:
                 self._sleep(wait)
         self._last_request[host] = time.monotonic()
+
+    def _delay_for(self, origin: str) -> float:
+        """The configured delay, or the site's robots.txt Crawl-delay if longer
+        (capped at 30s so one site can't stall the weekly run)."""
+        delay = self.settings.request_delay_seconds
+        parser = self._robots.get(origin)
+        if parser is not None:
+            try:
+                crawl = parser.crawl_delay(self.settings.user_agent)
+            except Exception:
+                crawl = None
+            if crawl:
+                delay = max(delay, min(float(crawl), 30.0))
+        return delay
 
     def _check_robots(self, url: str) -> None:
         if not self.respect_robots:

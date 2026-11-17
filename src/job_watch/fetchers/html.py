@@ -21,6 +21,9 @@ Common options:
   wait_selector:    with render_js, wait for this selector before reading
   default_location: used when no location selector / no location text
   exclude_titles:   list of link texts to ignore (nav links like "Apply")
+  key_by_title:     true to recognise a posting by title + location instead
+                    of its URL, for boards that change a job's URL when
+                    they repost it
   detail_location_keywords:
                     for postings that match but have no location, open the
                     posting page and use whichever of these words appear
@@ -78,6 +81,14 @@ class HtmlFetcher(Fetcher):
                     seen.add(p.url)
                     postings.append(p)
         return postings
+
+    def make_posting(self, **kwargs) -> Posting:
+        posting = super().make_posting(**kwargs)
+        if self.options.get("key_by_title"):
+            # Some boards (Betterteam) give a reposted job a new URL suffix
+            # (-3 -> -4); identify those postings by title + location instead.
+            posting.external_id = f"{posting.title}|{posting.location}".lower()
+        return posting
 
     def resolve_location(self, posting: Posting) -> str | None:
         """Open the posting page and look for `detail_location_keywords`."""

@@ -1,0 +1,38 @@
+{
+ "jobs": [
+  {
+   "data": {
+    "slug": "24993",
+    "req_id": "24993",
+    "title": "Civil Engineering Analyst",
+    "full_location": "Las Vegas, Nevada",
+    "location_name": "Las Vegas",
+    "category": [],
+    "posted_date": "2026-08-06T16:37:00+0000"
+   }
+  },
+  {
+   "data": {
+    "slug": "26463",
+    "req_id": "26463",
+    "title": "Experienced Civil EIT - Water/Wastewater",
+    "full_location": "Las Vegas, Nevada",
+    "location_name": "Las Vegas",
+    "category": [],
+    "posted_date": "2026-09-10T21:47:00+0000"
+   }
+  },
+  {
+   "data": {
+    "slug": "26462",
+    "req_id": "26462",
+    "title": "Civil Engineer - Land Development",
+    "full_location": "Las Vegas, Nevada",
+    "location_name": "Las Vegas",
+    "category": [],
+    "posted_date": "2026-09-10T21:46:00+0000"
+   }
+  }
+ ],
+ "totalCount": 3
+}

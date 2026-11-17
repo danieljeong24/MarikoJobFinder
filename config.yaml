@@ -145,14 +145,15 @@ employers:
   - id: kimley-horn
     name: Kimley-Horn
     category: national
-    type: icims
-    careers_url: https://careers-kimley-horn.icims.com/jobs/search
+    type: jibe
+    careers_url: https://careers.kimley-horn.com/jobs
     verified: >-
-      search-index: Las Vegas postings at careers-kimley-horn.icims.com/jobs/<id>/.../job
-      (e.g. 23448 Senior Civil Designer Tech, 18290 Experienced Civil EIT)
+      live (2026-11-17): the old careers-kimley-horn.icims.com search page now redirects
+      to careers.kimley-horn.com, an iCIMS Jibe site whose robots.txt allows everything
+      (Crawl-delay 5, which the client honours). /api/jobs?location=Las Vegas returned 10 jobs.
     options:
-      host: careers-kimley-horn.icims.com
-      search_keyword: Las Vegas
+      host: careers.kimley-horn.com
+      location: Las Vegas
 
   - id: hdr
     name: HDR
@@ -392,6 +393,9 @@ employers:
       link_regex: "^https://gcwengineering\\.betterteam\\.com/[a-z0-9-]+/?$"
       # Betterteam returns 403 to plain HTTP clients; render in a real browser.
       render_js: true
+      # Betterteam gives a reposted job a new URL suffix (-3 -> -4), which
+      # would make the same job look new every week.
+      key_by_title: true
 
   - id: lochsa
     name: Lochsa Engineering
