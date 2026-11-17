@@ -160,7 +160,7 @@ endpoint specifically.
 **Politeness.** Every request goes through `http.py`:
 - a real User-Agent (set it in `settings.user_agent`)
 - a delay between requests to the same host (`request_delay_seconds`, default 2s)
-- robots.txt checks
+- robots.txt checks, including a site's `Crawl-delay` (capped at 30s)
 - retries with exponential backoff on 429/5xx and network errors, honoring
   `Retry-After`
 
@@ -171,7 +171,7 @@ starting list. After that you only see changes.
 
 | id | Employer | ATS / source | type |
 |---|---|---|---|
-| kimley-horn | Kimley-Horn | iCIMS (`careers-kimley-horn.icims.com`) | `icims` |
+| kimley-horn | Kimley-Horn | iCIMS Jibe (`careers.kimley-horn.com`, moved from the old iCIMS portal in late 2026) | `jibe` |
 | hdr | HDR | Oracle Taleo (`hdr.taleo.net`, section `ex`, portal 101430233) | `taleo` |
 | hntb, hntb-university | HNTB | Workday (`hntb.wd5`, sites `HNTB_Careers` / `HNTB_University_Careers`) | `workday` |
 | wsp | WSP | Oracle Recruiting Cloud (`emit.fa.ca3.oraclecloud.com`, site `CX_2001`) | `oracle_hcm` |
@@ -207,7 +207,7 @@ postings. The next sections explain how.
 
 Fetcher types available: `workday`, `greenhouse`, `lever`, `icims`,
 `usajobs`, `rss`, `html`, `neogov`, `taleo`, `oracle_hcm`,
-`smartrecruiters`, `ultipro`, `adp`, `pinpoint`, `sitemap`. None of the
+`smartrecruiters`, `ultipro`, `adp`, `pinpoint`, `sitemap`, `jibe`. None of the
 current employers uses Lever, but that fetcher is there for when one does.
 
 ## Adding a new employer
@@ -251,6 +251,7 @@ Options for each type (full docs are at the top of each module in
 | `adp` | `cid`, `cc_id` |
 | `pinpoint` | `company` |
 | `sitemap` | `url`, `link_regex` (named groups `city`, `title`), `state` |
+| `jibe` | `host`, `location`, `keywords` |
 | `neogov` | `agency`, `host`, `default_location` |
 | `usajobs` | `job_category_code`, `location_name`, `radius_miles`, `keyword`, `max_low_grade` |
 | `rss` | `url`, `location_field`, `location_regex`, `default_location` |

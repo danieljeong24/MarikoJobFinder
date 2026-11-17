@@ -9,6 +9,7 @@ from .base import ConfigError, Fetcher, FetcherError, FetcherUnavailable
 from .greenhouse import GreenhouseFetcher
 from .html import HtmlFetcher
 from .icims import IcimsFetcher
+from .jibe import JibeFetcher
 from .lever import LeverFetcher
 from .neogov import NeogovFetcher
 from .oracle_hcm import OracleHcmFetcher
@@ -39,6 +40,7 @@ REGISTRY: dict[str, type[Fetcher]] = {
         AdpFetcher,
         PinpointFetcher,
         SitemapFetcher,
+        JibeFetcher,
     )
 }
 
